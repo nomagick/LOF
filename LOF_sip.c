@@ -959,7 +959,7 @@ static char *LOF_TOOL_generate_action_accept_body(LOF_DATA_ShareType *share)
 	return LOF_TOOL_xml_convert(buf);
 }
 
-int fetion_sip_parse_shareaccept(LOF_SIP_FetionSipType *sip
+int LOF_SIP_parse_shareaccept(LOF_SIP_FetionSipType *sip
 		, const char* sipmsg , LOF_DATA_ShareType *share)
 {
 	xmlDocPtr doc;

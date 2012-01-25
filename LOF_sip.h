@@ -192,43 +192,40 @@ extern void LOF_SIP_FetionSip_set_connection(LOF_SIP_FetionSipType* sip , LOF_CO
  * @note this function should be put at a loop
  * @return the SipMsg object which contains the message related information
  */
-extern SipMsg* fetion_sip_listen(FetionSip* sip, int *error);
+extern LOF_DATA_SipMsgType* LOF_SIP_FetionSip_listen(LOF_SIP_FetionSipType *sip, int *error);
 
-extern int fetion_sip_keep_alive(FetionSip* sip);
+extern int LOF_SIP_keep_alive(LOF_SIP_FetionSipType* sip);
 
-extern void fetion_sip_message_free(SipMsg* msg);
+extern void LOF_DATA_SipMsg_free(LOF_DATA_SipMsgType* msg);
 
-extern void fetion_sip_message_append(SipMsg* msglist , SipMsg* msg);
+extern void LOF_DATA_SipMsg_append(LOF_DATA_SipMsgType* msglist , LOF_DATA_SipMsgType* msg);
 
-extern void fetion_sip_parse_notification(const char* sip 
-		, int* type , int* event , char** xml);
+extern LOF_TOOL_SIP_parse_notification(const char* sip , int* type , int* event , char** xml);
 
-extern void fetion_sip_parse_message(FetionSip* sip
-		, const char* sipmsg , Message** msg);
+extern void LOF_TOOL_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF_DATA_FetionMessageType** msg);
 
-extern void fetion_sip_parse_invitation(FetionSip* sip
-		, Proxy *proxy, const char* sipmsg
-		, FetionSip** conversionSip , char** sipuri);
+extern void LOF_SIP_parse_invitation(LOF_SIP_FetionSipType* sip , LOF_CONNECTION_ProxyType *proxy , const char* sipmsg
+		, LOF_SIP_FetionSipType** conversionSip , char** sipuri);
 
-extern void fetion_sip_parse_addbuddyapplication(const char* sipmsg
-		, char** sipuri	, char** userid
-		, char** desc , int* phrase);
+extern void LOF_SIP_parse_addbuddyapplication(const char* sipmsg
+		, char** sipuri , char** userid , char** desc , int* phrase);
 
-extern void fetion_sip_parse_incoming(FetionSip* sip
+extern void LOF_SIP_parse_incoming(LOF_SIP_FetionSipType* sip
 		, const char* sipmsg , char** sipuri
-		, IncomingType* type , IncomingActionType *action);
+		, LOF_EVENT_IncomingType* type , LOF_EVENT_IncomingActionType *action);
 
-extern void fetion_sip_parse_userleft(const char* sipmsg , char** sipuri);
+extern void LOF_SIP_parse_userleft(const char* sipmsg , char** sipuri);
 
-extern int fetion_sip_parse_shareaccept(FetionSip *sip 
-		, const char* sipmsg , Share *share);
+extern int LOF_SIP_parse_shareaccept(LOF_SIP_FetionSipType *sip
+		, const char* sipmsg , LOF_DATA_ShareType *share);
 
-extern void fetion_sip_parse_sysmsg(const char* sipmsg , int *type
-		, int *showonce , char **content , char **url);
+extern void LOF_SIP_parse_sysmsg(const char* sipmsg , int *type
+		, int* showonce , char **content , char **url);
 
-extern int fetion_sip_parse_sipc(const char *sipmsg , int *callid , char **xml);
+extern int LOF_SIP_parse_sipc(const char *sipmsg , int *callid , char **xml);
 
-extern struct tm convert_date(const char* date);
+extern struct tm LOF_TOOL_convert_date(const char* date);
 
-extern inline void fetion_sip_set_conn(FetionSip *sip, FetionConnection *conn);
+extern inline void
+LOF_SIP_set_conn(LOF_SIP_FetionSipType *sip, LOF_CONNECTION_FetionConnectionType *conn);
 #endif
