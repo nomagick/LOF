@@ -218,7 +218,7 @@ void LOF_SIP_FetionSip_add_header(LOF_SIP_FetionSipType* sip , LOF_SIP_SipHeader
 	}
 }
 
-char* LOF_TOOL_SIP_to_string(LOF_SIP_FetionSipType* sip , const char* body)
+char* LOF_SIP_to_string(LOF_SIP_FetionSipType* sip , const char* body)
 {
 	char *res , *head , buf[1024] , type[128];
 	LOF_SIP_SipHeaderType *pos , *tmp;
@@ -301,7 +301,7 @@ void LOF_SIP_free(LOF_SIP_FetionSipType* sip)
 	free(sip);
 }
 
-char* LOF_TOOL_SIP_get_sid_by_sipuri(const char* sipuri)
+char* LOF_SIP_get_sid_by_sipuri(const char* sipuri)
 {
 	char *res , *pos;
 	int n;
@@ -313,7 +313,7 @@ char* LOF_TOOL_SIP_get_sid_by_sipuri(const char* sipuri)
 	return res;
 }
 
-char* LOF_TOOL_SIP_get_pgid_by_sipuri(const char *pgsipuri)
+char* LOF_SIP_get_pgid_by_sipuri(const char *pgsipuri)
 {
 	char *res , *pos;
 	int n;
@@ -327,7 +327,7 @@ char* LOF_TOOL_SIP_get_pgid_by_sipuri(const char *pgsipuri)
 	return res;
 }
 
-int LOF_TOOL_SIP_get_attr(const char* sip , const char* name , char* result)
+int LOF_SIP_get_attr(const char* sip , const char* name , char* result)
 {
 	char m_name[16];
 	char* pos;
@@ -345,16 +345,16 @@ int LOF_TOOL_SIP_get_attr(const char* sip , const char* name , char* result)
 	return 1;
 }
 
-int LOF_TOOL_SIP_get_length(const char* sip)
+int LOF_SIP_get_length(const char* sip)
 {
 	char res[6];
 	char name[] = "L";
 	memset(res, 0, sizeof(res));
-	if(LOF_TOOL_SIP_get_attr(sip , name , res) == -1)
+	if(LOF_SIP_get_attr(sip , name , res) == -1)
 		return 0;
 	return atoi(res);
 }
-int LOF_TOOL_SIP_get_code(const char* sip)
+int LOF_SIP_get_code(const char* sip)
 {
 	char *pos , res[32];
 	int n;
@@ -369,7 +369,7 @@ int LOF_TOOL_SIP_get_code(const char* sip)
 	strncpy(res , pos , n);
 	return atoi(res);
 }
-int LOF_TOOL_SIP_get_type(const char* sip)
+int LOF_SIP_get_type(const char* sip)
 {
 	char res[128];
 	int n;
@@ -396,7 +396,7 @@ int LOF_TOOL_SIP_get_type(const char* sip)
 	return LOF_SIP_UNKNOWN;
 		
 }
-char* LOF_SIP_FetionSip_get_response(LOF_SIP_FetionSipType* sip)
+char* LOF_SIP_get_response(LOF_SIP_FetionSipType* sip)
 {
 	char *res;
 	int len , n;
@@ -407,7 +407,7 @@ char* LOF_SIP_FetionSip_get_response(LOF_SIP_FetionSipType* sip)
 
 	if((c = LOF_CONNECTION_FetionConnection_recv(sip->tcp , buf , sizeof(buf) - 2)) == -1) return (char*)0;
 
-	len = LOF_TOOL_SIP_get_length(buf);
+	len = LOF_SIP_get_length(buf);
 
 	while(strstr(buf , "\r\n\r\n") == NULL && c < (int)sizeof(buf))
 		c += LOF_CONNECTION_FetionConnection_recv(sip->tcp, buf + c, sizeof(buf) - c - 1);
@@ -453,7 +453,7 @@ void LOF_SIP_FetionSip_set_connection(LOF_SIP_FetionSipType* sip , LOF_CONNECTIO
 {
 	sip->tcp = conn;
 }
-void LOF_TOOL_SIP_get_auth_attr(const char* auth , char** ipaddress , int* port , char** credential)
+void LOF_SIP_get_auth_attr(const char* auth , char** ipaddress , int* port , char** credential)
 {
 	char* pos = strstr(auth , "address=\"") + 9;
 	int n = strlen(pos) - strlen(strstr(pos , ":"));
@@ -508,22 +508,22 @@ LOF_DATA_SipMsgType* LOF_SIP_FetionSip_listen(LOF_SIP_FetionSipType *sip, int *e
 	if(n == 0){
 		LOF_debug_info("fetion_sip_listen 0");
 		*error = 1;
-		return (LOF_DATA_SipMsgType*)NULL;
+		return list;
 	}
-	if(n == -1){
+	if(n < 0){
 		*error = 1;
-		return (LOF_DATA_SipMsgType*)NULL;
+		return list;
 	}
 	cur = buffer;
 	/*Got Something ,Do Processing*/
 	for(;;){
-		pos = strstr(cur, "\r\n\r\n");
+		pos = strstr(cur, "\r\n\r\n")+4;
 		body_len = 0;
 		if(pos){
 			n = strlen(cur) - strlen(pos);
 			memset(holder, 0, sizeof(holder));
 			strncpy(holder, cur, n);
-			body_len = LOF_TOOL_SIP_get_length(holder);
+			body_len = LOF_SIP_get_length(holder);
 		}
 
 		if(cur == NULL || *cur == '\0')
@@ -572,7 +572,7 @@ LOF_DATA_SipMsgType* LOF_SIP_FetionSip_listen(LOF_SIP_FetionSipType *sip, int *e
 					LOF_DATA_SipMsg_append(list, msg);
 				else
 					list = msg;
-				return (LOF_DATA_SipMsgType*)list;
+				return list;
 			}else{
 				msg = LOF_DATA_SipMsg_new();
 				n = strlen(cur) - strlen(pos) + body_len;
@@ -601,7 +601,7 @@ int LOF_SIP_keep_alive(LOF_SIP_FetionSipType* sip)
 	LOF_debug_info("Send a periodical chat keep alive request");
 
 	LOF_SIP_FetionSip_set_type(sip , LOF_SIP_REGISTER);
-	res = LOF_TOOL_SIP_to_string(sip , NULL);
+	res = LOF_SIP_to_string(sip , NULL);
 	ret = LOF_CONNECTION_FetionConnection_send(sip->tcp , res , strlen(res));
 	free(res);
 	return ret;
@@ -634,14 +634,14 @@ struct tm LOF_TOOL_convert_date(const char* date)
 	return dstr;
 
 }
-void LOF_TOOL_SIP_parse_notification(const char* sip , int* type , int* event , char** xml)
+void LOF_SIP_parse_notification(const char* sip , int* type , int* event , char** xml)
 {
 	char type1[16] , *pos;
 	xmlChar *event1;
 	xmlDocPtr doc;
 	xmlNodePtr node;
 	memset(type1, 0, sizeof(type1));
-	LOF_TOOL_SIP_get_attr(sip , "N" , type1);
+	LOF_SIP_get_attr(sip , "N" , type1);
 	if(strcmp(type1 , "PresenceV4") == 0)
 		*type = LOF_NOTIFICATION_TYPE_PRESENCE;
 	else if(strcmp(type1 , "Conversation") == 0)
@@ -682,7 +682,7 @@ void LOF_TOOL_SIP_parse_notification(const char* sip , int* type , int* event , 
 	xmlFree(event1);
 	xmlFreeDoc(doc);
 }
-void LOF_TOOL_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF_DATA_FetionMessageType** msg)
+void LOF_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF_DATA_FetionMessageType** msg)
 {
 	char len[16] , callid[16] , sequence[16] ;
 	char sendtime[32] , from[64] , rep[256];
@@ -696,11 +696,11 @@ void LOF_TOOL_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg 
 	memset(sequence , 0 , sizeof(sequence));
 	memset(sendtime , 0 , sizeof(sendtime));
 	memset(from , 0 , sizeof(from));
-	LOF_TOOL_SIP_get_attr(sipmsg , "F" , from);
-	LOF_TOOL_SIP_get_attr(sipmsg , "L" , len);
-	LOF_TOOL_SIP_get_attr(sipmsg , "I" , callid);
-	LOF_TOOL_SIP_get_attr(sipmsg , "Q" , sequence);
-	LOF_TOOL_SIP_get_attr(sipmsg , "D" , sendtime);
+	LOF_SIP_get_attr(sipmsg , "F" , from);
+	LOF_SIP_get_attr(sipmsg , "L" , len);
+	LOF_SIP_get_attr(sipmsg , "I" , callid);
+	LOF_SIP_get_attr(sipmsg , "Q" , sequence);
+	LOF_SIP_get_attr(sipmsg , "D" , sendtime);
 
 	*msg = LOF_DATA_FetionMessage_new();
 
@@ -713,7 +713,7 @@ void LOF_TOOL_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg 
 	if(strstr(from , "PG") != NULL){
 	    LOF_DATA_FetionMessage_set_pguri(*msg , from);
 	    memset(memsipuri , 0 , sizeof(memsipuri));
-	    LOF_TOOL_SIP_get_attr(sipmsg , "SO" , memsipuri);
+	    LOF_SIP_get_attr(sipmsg , "SO" , memsipuri);
 	    LOF_DATA_FetionMessage_set_sipuri(*msg , memsipuri);
 	}else{
 	    LOF_DATA_FetionMessage_set_sipuri(*msg , from);
@@ -721,7 +721,7 @@ void LOF_TOOL_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg 
 
 	pos = strstr(sipmsg , "\r\n\r\n") + 4;
 	doc = xmlReadMemory(pos , strlen(pos) , "UTF-8" , NULL , XML_PARSE_NOERROR);
-	LOF_DATA_FetionMessage_set_time(*msg , (struct tm){LOF_TOOL_convert_date(sendtime)});
+	LOF_DATA_FetionMessage_set_time(*msg ,LOF_TOOL_convert_date(sendtime));
 
 	if(doc != NULL){
 		node = xmlDocGetRootElement(doc);
@@ -762,9 +762,9 @@ void LOF_SIP_parse_invitation(LOF_SIP_FetionSipType* sip , LOF_CONNECTION_ProxyT
 	memset(from, 0, sizeof(from));
 	memset(auth, 0, sizeof(auth));
 	memset(buf, 0, sizeof(buf));
-	LOF_TOOL_SIP_get_attr(sipmsg , "F" , from);
-	LOF_TOOL_SIP_get_attr(sipmsg , "A" , auth);
-	LOF_TOOL_SIP_get_auth_attr(auth , &ipaddress , &port , &credential);
+	LOF_SIP_get_attr(sipmsg , "F" , from);
+	LOF_SIP_get_attr(sipmsg , "A" , auth);
+	LOF_SIP_get_auth_attr(auth , &ipaddress , &port , &credential);
 	conn = LOF_CONNECTION_FetionConnection_new();
 
 	if(proxy != NULL && proxy->proxyEnabled)
@@ -798,7 +798,7 @@ void LOF_SIP_parse_invitation(LOF_SIP_FetionSipType* sip , LOF_CONNECTION_ProxyT
 	LOF_SIP_FetionSip_add_header(sip , theader);
 	LOF_SIP_FetionSip_add_header(sip , mheader);
 	LOF_SIP_FetionSip_add_header(sip , nheader);
-	sipres = LOF_TOOL_SIP_to_string(sip , NULL);
+	sipres = LOF_SIP_to_string(sip , NULL);
 	LOF_debug_info("Register to conversation server %s:%d" , ipaddress , port);
 	LOF_CONNECTION_FetionConnection_send(conn , sipres , strlen(sipres));
 	free(sipres);
@@ -867,7 +867,7 @@ void LOF_SIP_parse_incoming(LOF_SIP_FetionSipType* sip
 		LOF_debug_info("Received a share-content IN message");
 		*sipuri = (char*)malloc(48);
 		memset(*sipuri, 0, 48);
-		LOF_TOOL_SIP_get_attr(sipmsg , "F" , *sipuri);
+		LOF_SIP_get_attr(sipmsg , "F" , *sipuri);
 		*type = LOF_INCOMING_SHARE_CONTENT;
 		if(! xmlHasProp(node , BAD_CAST "action")){
 			*action = LOF_INCOMING_ACTION_UNKNOWN;
@@ -903,9 +903,9 @@ void LOF_SIP_parse_incoming(LOF_SIP_FetionSipType* sip
 		memset(seq, 0, sizeof(seq));
 		memset(*sipuri, 0, 50);
 
-		LOF_TOOL_SIP_get_attr(sipmsg , "I" , callid);
-		LOF_TOOL_SIP_get_attr(sipmsg , "Q" , seq);
-		LOF_TOOL_SIP_get_attr(sipmsg , "F" , *sipuri);
+		LOF_SIP_get_attr(sipmsg , "I" , callid);
+		LOF_SIP_get_attr(sipmsg , "Q" , seq);
+		LOF_SIP_get_attr(sipmsg , "F" , *sipuri);
 		sprintf(replyMsg , "SIP-C/4.0 200 OK\r\n"
 						   "F: %s\r\n"
 						   "I: %s \r\n"
@@ -974,9 +974,9 @@ int LOF_SIP_parse_shareaccept(LOF_SIP_FetionSipType *sip
 	memset(callid, 0, sizeof(callid));
 	memset(from, 0, sizeof(from));
 	memset(seq, 0, sizeof(seq));
-	LOF_TOOL_SIP_get_attr(sipmsg , "I" , callid);
-	LOF_TOOL_SIP_get_attr(sipmsg , "F" , from);
-	LOF_TOOL_SIP_get_attr(sipmsg , "Q" , seq);
+	LOF_SIP_get_attr(sipmsg , "I" , callid);
+	LOF_SIP_get_attr(sipmsg , "F" , from);
+	LOF_SIP_get_attr(sipmsg , "Q" , seq);
 	
 	pos = strstr(sipmsg , "\r\n\r\n") + 4;
 	doc = xmlReadMemory(pos , strlen(pos) , NULL , "UTF-8" , XML_PARSE_RECOVER );
@@ -1067,7 +1067,7 @@ int LOF_SIP_parse_sipc(const char *sipmsg , int *callid , char **xml)
 	n = strlen(pos) - strlen(strstr(pos , " "));
 	strncpy(code , pos , n);
 	
-	LOF_TOOL_SIP_get_attr(sipmsg , "I" , callid_str);
+	LOF_SIP_get_attr(sipmsg , "I" , callid_str);
 	*callid = atoi(callid_str);
 	
 	pos = strstr(sipmsg , "\r\n\r\n");

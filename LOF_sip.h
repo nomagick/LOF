@@ -122,7 +122,7 @@ extern void LOF_SIP_FetionSip_add_header(LOF_SIP_FetionSipType* sip , LOF_SIP_Si
  * fetion protocal stack,otherwise just call the protocal functions ,
  * they can meet most of your demand.
  */
-extern char* LOF_TOOL_SIP_to_string(LOF_SIP_FetionSipType* sip , const char* body);
+extern char* LOF_SIP_to_string(LOF_SIP_FetionSipType* sip , const char* body);
 
 /**
  * free the resource of the sip object after use
@@ -134,14 +134,14 @@ extern void LOF_SIP_free(LOF_SIP_FetionSipType* sip);
  * @param sipuri The sip uri to get sid from
  * @return sid get from the sipuri. Need to be freed after use.
  */
-extern char* LOF_TOOL_SIP_get_sid_by_sipuri(const char* sipuri);
+extern char* LOF_SIP_get_sid_by_sipuri(const char* sipuri);
 
 /**
  * Another very commonly used function.It convert the fetion group uri
  * to sid , when pgsipuri is 'sip:PG444444@fetion.com.cn' , it returns 444444
  * @return Need to be freed after use.
  */
-extern char* LOF_TOOL_SIP_get_pgid_by_sipuri(const char *pgsipuri);
+extern char* LOF_SIP_get_pgid_by_sipuri(const char *pgsipuri);
 
 /**
  * get the attribute value with the given attribute name in a sip message
@@ -150,37 +150,37 @@ extern char* LOF_TOOL_SIP_get_pgid_by_sipuri(const char *pgsipuri);
  * @param retulst The attribute value
  * @return 1 if success , or else -1
  */
-extern int LOF_TOOL_SIP_get_attr(const char* sip , const char* name , char* result);
+extern int LOF_SIP_get_attr(const char* sip , const char* name , char* result);
 
 /**
  * get the length of the sip message body which is in form of xml
  * @return the length of the xml body , 0 if no xml body
  */
-extern int LOF_TOOL_SIP_get_length(const char* sip);
+extern int LOF_SIP_get_length(const char* sip);
 
 /**
  * get the code of the reponse sip message , for example
  * the input message is "SIP-C/4.0 200 OK ...." , it returns 200
  */
-extern int LOF_TOOL_SIP_get_code(const char* sip);
+extern int LOF_SIP_get_code(const char* sip);
 
 /**
  * get the type of the sip message 
  */
-extern int LOF_TOOL_SIP_get_type(const char* sip);
+extern int LOF_SIP_get_type(const char* sip);
 
 /** 
  * @note this function can just be used when you want to expand the 
  * fetion protocal stack,otherwise just call the protocal functions ,
  * they can meet most of your demand.
  */
-extern void LOF_TOOL_SIP_get_auth_attr(const char* auth , char** ipaddress , int* port , char** credential);
+extern void LOF_SIP_get_auth_attr(const char* auth , char** ipaddress , int* port , char** credential);
 
 /**
  * get the response message when a request message already sent
  * @return The response message sent from the sipc server,need to be freed after use.
  */
-extern char* LOF_SIP_FetionSip_get_response(LOF_SIP_FetionSipType* sip);
+extern char* LOF_SIP_get_response(LOF_SIP_FetionSipType* sip);
 
 /**
  * set a new tcp connection object for the specified sip object
@@ -200,9 +200,9 @@ extern void LOF_DATA_SipMsg_free(LOF_DATA_SipMsgType* msg);
 
 extern void LOF_DATA_SipMsg_append(LOF_DATA_SipMsgType* msglist , LOF_DATA_SipMsgType* msg);
 
-extern LOF_TOOL_SIP_parse_notification(const char* sip , int* type , int* event , char** xml);
+extern void LOF_SIP_parse_notification(const char* sip , int* type , int* event , char** xml);
 
-extern void LOF_TOOL_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF_DATA_FetionMessageType** msg);
+extern void LOF_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF_DATA_FetionMessageType** msg);
 
 extern void LOF_SIP_parse_invitation(LOF_SIP_FetionSipType* sip , LOF_CONNECTION_ProxyType *proxy , const char* sipmsg
 		, LOF_SIP_FetionSipType** conversionSip , char** sipuri);

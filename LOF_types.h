@@ -60,7 +60,8 @@ typedef enum {
 	LOF_STATUS_HIDDEN = 		 0 ,
 	LOF_STATUS_OFFLINE =      -1
 } LOF_USER_StatusType;
-
+#define LOF_USER_AUTH_NEED_CONFIRM(u) ((u)->loginStatus == 421 || (u)->loginStatus == 420)
+#define LOF_USER_AUTH_ERROR(u)        ((u)->loginStatus == 401 || (u)->loginStatus == 400 || (u)->loginStatus == 404)
 /**
  * Type used to indicate whether user`s avatar has been changed
  */
@@ -155,7 +156,7 @@ typedef struct LOF_contact {
 	char province[6];					/* user`s province`s simplified form,like bj		*/
 	char city[6];						/* user`s city`s code ,like 10 for beijing			*/
 	int identity;						/* whethere to show mobileno to this user   		*/
-//	int scoreLevel;						/* user`s score level,unused now					*/
+	int scoreLevel;						/* user`s score level,unused now					*/
 	int serviceStatus;					/* basic service status 							*/
 	int carrierStatus;
 	int relationStatus;
@@ -325,7 +326,7 @@ typedef struct {
 
 	char personalVersion[16];			/* the version of personal information						*/
 	char contactVersion[16];			/* the version of contact information						*/
-//	char customConfigVersion[16];		/* the version of custom config string,unused now			*/
+	char customConfigVersion[16];		/* the version of custom config string,unused now			*/
 
 	char nickname[48];					/* nickname of yourself										*/
 	char impression[256];				/* mood phrase of yourself									*/
@@ -344,7 +345,7 @@ typedef struct {
 	int pgGroupCallId;					/* callid for get group list request */
 	int groupInfoCallId;					/* callid for get group info request */
 
-	int state;							/* presence state											*/
+	int status;							/* presence state											*/
 	int loginType;   					/* using sid or mobileno									*/
 	int loginStatus; 					/* login status code 										*/
 	int carrierStatus;
