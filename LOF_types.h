@@ -371,7 +371,7 @@ typedef struct {
 	LOF_DATA_LocalUserType       *currentUser;			 /* current user,ourselves									   */
 	LOF_SIP_FetionSipType  *currentSip;				 /* sip struct used to send message
 										  * NULL if did not start a chat channel for this conversation */
-} LOF_CONNECTION_ConversationType;
+} LOF_USER_ConversationType;
 
 
 

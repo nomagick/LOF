@@ -32,7 +32,7 @@
 #include "LOF_openfetion.h"
 #include <signal.h>
 
-LOF_DATA_UnackedListType *unackedlist;
+
 
 int LOF_USER_download_avatar_again(const char* filepath , const char* buf , LOF_CONNECTION_ProxyType *proxy);
 char* LOF_SIP_generate_set_status_body(LOF_USER_StatusType state);
@@ -70,7 +70,7 @@ LOF_DATA_LocalUserType* LOF_USER_LocalUser_new(const char* no , const char* pass
 	user->ssic = NULL;
 	user->config = NULL;
 
-	unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)NULL);
+	LOF_GLOBAL_unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)NULL);
 
 	return user;
 }
