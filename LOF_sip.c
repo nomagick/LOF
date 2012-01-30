@@ -293,7 +293,7 @@ char* LOF_SIP_to_string(LOF_SIP_FetionSipType* sip , const char* body)
 	sip->header = NULL;
 	return res;
 }
-void LOF_SIP_free(LOF_SIP_FetionSipType* sip)
+void LOF_SIP_FetionSip_free(LOF_SIP_FetionSipType* sip)
 {
 	LOF_debug_info("Free sip struct and close socket");
 	if(sip != NULL)
@@ -517,7 +517,7 @@ LOF_DATA_SipMsgType* LOF_SIP_FetionSip_listen(LOF_SIP_FetionSipType *sip, int *e
 	cur = buffer;
 	/*Got Something ,Do Processing*/
 	for(;;){
-		pos = strstr(cur, "\r\n\r\n")+4;
+		pos = strstr(cur, "\r\n\r\n");
 		body_len = 0;
 		if(pos){
 			n = strlen(cur) - strlen(pos);
@@ -527,7 +527,7 @@ LOF_DATA_SipMsgType* LOF_SIP_FetionSip_listen(LOF_SIP_FetionSipType *sip, int *e
 		}
 
 		if(cur == NULL || *cur == '\0')
-			return (LOF_DATA_SipMsgType*)list;
+			return list;
 
 		if(body_len == 0 && pos){
 			msg = LOF_DATA_SipMsg_new();

@@ -31,7 +31,7 @@
 
 #include "LOF_openfetion.h"
 
-LOF_TOOL_FxListType* LOF_DATA_FxList_new(void* data)
+LOF_TOOL_FxListType* LOF_TOOL_FxList_new(void* data)
 {
 	LOF_TOOL_FxListType* fxlist = (LOF_TOOL_FxListType*)malloc(sizeof(LOF_TOOL_FxListType));
 	memset(fxlist , 0 , sizeof(LOF_TOOL_FxListType));
@@ -41,13 +41,13 @@ LOF_TOOL_FxListType* LOF_DATA_FxList_new(void* data)
 	return fxlist;
 }
 
-void LOF_DATA_FxList_free(LOF_TOOL_FxListType *fxitem)
+void LOF_TOOL_FxList_free(LOF_TOOL_FxListType *fxitem)
 {
 	if(fxitem != NULL)
 		free(fxitem);
 }
 
-void LOF_DATA_FxList_append(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem)
+void LOF_TOOL_FxList_append(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem)
 {
 	fxlist->next->pre = fxitem;
 	fxitem->next = fxlist->next;
@@ -55,7 +55,7 @@ void LOF_DATA_FxList_append(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *f
 	fxlist->next = fxitem;
 }
 
-void LOF_DATA_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem)
+void LOF_TOOL_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem)
 {
 	fxlist->pre->next = fxitem;
 	fxitem->pre = fxlist->pre;
@@ -63,7 +63,7 @@ void LOF_DATA_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *
 	fxlist->pre = fxitem;
 }
 
-void LOF_DATA_FxList_remove(LOF_TOOL_FxListType *fxitem)
+void LOF_TOOL_FxList_remove(LOF_TOOL_FxListType *fxitem)
 {
 	fxitem->next->pre = fxitem->pre;
 	fxitem->pre->next = fxitem->next;

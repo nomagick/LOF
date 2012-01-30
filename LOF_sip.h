@@ -127,7 +127,7 @@ extern char* LOF_SIP_to_string(LOF_SIP_FetionSipType* sip , const char* body);
 /**
  * free the resource of the sip object after use
  */
-extern void LOF_SIP_free(LOF_SIP_FetionSipType* sip);
+extern void LOF_SIP_FetionSip_free(LOF_SIP_FetionSipType* sip);
 
 /**
  * A very commonly used function.It convert the sipuri to sid

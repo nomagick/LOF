@@ -35,7 +35,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include <time.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
@@ -45,7 +45,7 @@ extern "C" {
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+
 #include <dirent.h>
 #include <sys/stat.h>
 #include <libxml/parser.h>
@@ -62,9 +62,9 @@ extern "C" {
 #include "LOF_connection.h"
 #include "LOF_sip.h"
 #include "LOF_user.h"
-/*#include "LOF_contact.h"
-#include "LOF_login.h"
+#include "LOF_contact.h"
 #include "LOF_config.h"
+/*#include "LOF_login.h"
 #include "LOF_conversation.h"
 #include "LOF_buddylist.h"
 #include "LOF_history.h"

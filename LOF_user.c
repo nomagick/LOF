@@ -70,7 +70,7 @@ LOF_DATA_LocalUserType* LOF_USER_LocalUser_new(const char* no , const char* pass
 	user->ssic = NULL;
 	user->config = NULL;
 
-	unackedlist = LOF_DATA_UnackedList_new(NULL);
+	unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)(NULL));
 
 	return user;
 }
@@ -104,7 +104,7 @@ void LOF_DATA_LocalUser_set_sip(LOF_DATA_LocalUserType* user , LOF_SIP_FetionSip
 
 void LOF_DATA_LocalUser_set_config(LOF_DATA_LocalUserType* user , LOF_TOOL_ConfigType* config1)
 {
-	debug_info("Set a initialized Config Struct to User");
+	LOF_debug_info("Set a initialized Config Struct to User");
 	user->config = config1;
 }
 
@@ -147,7 +147,7 @@ int LOF_USER_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusType state
 	LOF_SIP_FetionSip_set_type(sip , LOF_SIP_SERVICE);
 	eheader = LOF_SIP_SipHeader_event_new(LOF_SIP_EVENT_SETPRESENCE);
 	LOF_SIP_FetionSip_add_header(sip , eheader);
-	body = LOF_TOOL_generate_set_status_body(state);
+	body = LOF_SIP_generate_set_status_body(state);
 	res = LOF_SIP_to_string(sip , body);
 	LOF_CONNECTION_FetionConnection_send(sip->tcp , res , strlen(res));
 	user->status = state;
@@ -166,7 +166,7 @@ int LOF_USER_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphras
 	LOF_debug_info("Start seting moodphrase");
 	eheader = LOF_SIP_SipHeader_event_new(LOF_SIP_EVENT_SETUSERINFO);
 	LOF_SIP_FetionSip_add_header(sip , eheader);
-	body = LOF_USER_generate_set_moodphrase_body(user->customConfigVersion
+	body = LOF_SIP_generate_set_moodphrase_body(user->customConfigVersion
 									  , user->customConfig
 									  , user->personalVersion
 									  , moodphrase);
@@ -177,7 +177,7 @@ int LOF_USER_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphras
 	res = LOF_SIP_get_response(sip);
 	ret = LOF_SIP_get_code(res);
 	if(ret == 200){
-		LOF_USER_parse_set_moodphrase_response(user , res);
+		LOF_SIP_parse_set_moodphrase_response(user , res);
 		free(res);
 		LOF_debug_info("Set moodphrase success");
 		return 1;
@@ -198,7 +198,7 @@ int LOF_USER_update_info(LOF_DATA_LocalUserType* user)
 	LOF_debug_info("Start Updating User Information");
 	eheader = LOF_SIP_SipHeader_event_new(LOF_SIP_EVENT_SETUSERINFO);
 	LOF_SIP_FetionSip_add_header(sip , eheader);
-	body = LOF_USER_generate_update_information_body(user);
+	body = LOF_SIP_generate_update_information_body(user);
 	res = LOF_SIP_to_string(sip , body);
 	free(body);
 	LOF_CONNECTION_FetionConnection_send(sip->tcp , res , strlen(res));
@@ -785,7 +785,7 @@ LOF_DATA_BuddyContactType* LOF_SIP_parse_syncuserinfo_body(const char* body , LO
 
 	doc = xmlParseMemory(body , strlen(body));
 	node = xmlDocGetRootElement(doc);
-	node = xml_goto_node(node , "buddy");
+	node = LOF_TOOL_xml_goto_node(node , "buddy");
 	if(node == NULL)
 		return NULL;
 	while(node){
@@ -903,7 +903,7 @@ void fetion_user_load(LOF_DATA_LocalUserType *user)
 
 	sprintf(path, "%s/data.db",config->userPath);
 
-	debug_info("Load user information");
+	LOF_debug_info("Load user information");
 	if(sqlite3_open(path, &db)){
 		LOF_debug_error("open data.db:%s", sqlite3_errmsg(db));
 		return;

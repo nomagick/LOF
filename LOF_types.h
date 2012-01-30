@@ -523,4 +523,23 @@ typedef enum
 	LOF_INCOMING_ACTION_UNKNOWN
 } LOF_EVENT_IncomingActionType;
 
+typedef enum
+{
+	LOF_FETION_NO = 1,
+	LOF_MOBILE_NO
+} LOF_TOOL_NumberType;
+
+typedef enum
+{
+	LOF_BUDDY_OK = 200 ,
+	LOF_BUDDY_SAME_USER_DAILY_LIMIT = 486 ,
+	LOF_BUDDY_USER_EXIST = 521 ,
+	LOF_BUDDY_BAD_REQUEST = 400
+} LOF_BUDDY_AddBuddyType;
+
+typedef struct {
+	char content[256];
+	int phraseid;
+} LOF_TOOL_PhraseType;
+
 #endif /* LOF_TYPES_H_ */
