@@ -32,13 +32,13 @@
 #include "LOF_openfetion.h"
 #include <signal.h>
 
-struct unacked_list *unackedlist;
+LOF_DATA_UnackedListType *unackedlist;
 
 int LOF_USER_download_avatar_again(const char* filepath , const char* buf , LOF_CONNECTION_ProxyType *proxy);
 char* LOF_SIP_generate_set_status_body(LOF_USER_StatusType state);
  char* LOF_SIP_generate_set_moodphrase_body(const char* customConfigVersion
 				, const char* customConfig , const char* personalVersion ,  const char* moodphrase);
-// char* LOF_SIP_generate_update_information_body(LOF_DATA_LocalUserType* user);
+ char* LOF_SIP_generate_update_information_body(LOF_DATA_LocalUserType* user);
  char* LOF_SIP_generate_keep_alive_body();
  void LOF_SIP_parse_set_moodphrase_response(LOF_DATA_LocalUserType* user , const char* sipmsg);
  char* LOF_SIP_generate_set_sms_status_body(int days);
@@ -70,7 +70,7 @@ LOF_DATA_LocalUserType* LOF_USER_LocalUser_new(const char* no , const char* pass
 	user->ssic = NULL;
 	user->config = NULL;
 
-	unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)(NULL));
+	unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)NULL);
 
 	return user;
 }
@@ -988,7 +988,7 @@ char* LOF_SIP_generate_set_moodphrase_body(const char* customConfigVersion
 	xmlFreeDoc(doc);
 	return LOF_TOOL_xml_convert(res);
 }
-char* LOF_TOOL_generate_update_information_body(LOF_DATA_LocalUserType* user)
+char* LOF_SIP_generate_update_information_body(LOF_DATA_LocalUserType* user)
 {
 	char args[] = "<args></args>";
 	char gender[5];
