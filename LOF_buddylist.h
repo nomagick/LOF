@@ -29,51 +29,24 @@
  *   OpenSSL library used as well as that of the covered work.             *
  ***************************************************************************/
 
-#ifndef LOF_OPENFETION_H
-#define LOF_OPENFETION_H
+#ifndef LOF__BUDDYLIST_H
+#define LOF_BUDDYLIST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <time.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <unistd.h>
-#define _XOPEN_SOURCE
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+extern int LOF_BUDDY_list_create(LOF_DATA_LocalUserType* user , const char* name);
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <libxml/parser.h>
-#include <pthread.h>
-#include <openssl/crypto.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <sqlite3.h>
-#include "LOF_types.h"
-#include "LOF_list.h"
-#include "LOF_debug.h"
-#include "LOF_message.h"
-#include "LOF_connection.h"
-#include "LOF_sip.h"
-#include "LOF_user.h"
-#include "LOF_contact.h"
-#include "LOF_config.h"
-#include "LOF_login.h"
-#include "LOF_conversation.h"
-#include "LOF_buddylist.h"
-/*#include "LOF_history.h"
-#include "LOF_share.h"
-#include "LOF_directsms.h"
-#include "LOF_group.h"*/
+extern int LOF_BUDDY_list_delete(LOF_DATA_LocalUserType* user , int id);
 
-#ifdef __cplusplus
-}
-#endif
+extern int LOF_BUDDY_list_edit(LOF_DATA_LocalUserType* user , int id , const char* name);
+
+/*private*/
+extern char* LOF_SIP_generate_create_buddylist_body(const char* name);
+
+extern char* LOF_SIP_generate_edit_buddylist_body(int id , const char* name);
+
+extern char* LOF_SIP_generate_delete_buddylist_body(int id);
+
+extern int LOF_SIP_parse_create_buddylist_response(LOF_DATA_LocalUserType* user , const char* sipmsg);
+
+//extern void parse_delete_buddylist_response(User* user , const char* sipmsg);
 
 #endif
