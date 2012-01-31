@@ -29,51 +29,20 @@
  *   OpenSSL library used as well as that of the covered work.             *
  ***************************************************************************/
 
-#ifndef LOF_OPENFETION_H
-#define LOF_OPENFETION_H
+#ifndef LOF_SHARE_H
+#define LOF_SHARE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <time.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <unistd.h>
-#define _XOPEN_SOURCE
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#define LOF_MAX_FILE_SIZE 2097151
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <libxml/parser.h>
-#include <pthread.h>
-#include <openssl/crypto.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <sqlite3.h>
-#include "LOF_types.h"
-#include "LOF_list.h"
-#include "LOF_debug.h"
-#include "LOF_message.h"
-#include "LOF_connection.h"
-#include "LOF_sip.h"
-#include "LOF_user.h"
-#include "LOF_contact.h"
-#include "LOF_config.h"
-#include "LOF_login.h"
-#include "LOF_conversation.h"
-#include "LOF_buddylist.h"
-#include "LOF_history.h"
-#include "LOF_share.h"
-#include "LOF_directsms.h"
-#include "LOF_group.h"
+extern LOF_DATA_ShareType *LOF_DATA_Share_new_with_path(const char *sipuri , const char *absolutePath);
 
-#ifdef __cplusplus
-}
-#endif
+extern LOF_DATA_ShareType *LOF_DATA_Share_new(const char *sipuri);
 
+extern void LOF_DATA_Share_request(LOF_SIP_FetionSipType *sip , LOF_DATA_ShareType *share);
+
+//extern void fetion_share_response_accept(FetionSip *sip , Share *share);
+extern char* LOF_SIP_generate_share_request_body(LOF_DATA_ShareType *share);
+extern void LOF_DATA_Share_start_transfer(LOF_SIP_FetionSipType *sip);
+extern char* LOF_TOOL_compute_md5(const char *absolutePath);
+extern long long LOF_DATA_Share_get_filesize(const char *absolutePath);
 #endif

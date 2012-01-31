@@ -29,51 +29,35 @@
  *   OpenSSL library used as well as that of the covered work.             *
  ***************************************************************************/
 
-#ifndef LOF_OPENFETION_H
-#define LOF_OPENFETION_H
+#ifndef LOF_HISTORY_H
+#define LOF_HISTORY_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <time.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <unistd.h>
-#define _XOPEN_SOURCE
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#define LOF_HISTORY_TODAY 1
+#define LOF_HISTORY_WEEK  2
+#define LOF_HISTORY_MONTH 3
+#define LOF_HISTORY_ALL   4
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <libxml/parser.h>
-#include <pthread.h>
-#include <openssl/crypto.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <sqlite3.h>
-#include "LOF_types.h"
-#include "LOF_list.h"
-#include "LOF_debug.h"
-#include "LOF_message.h"
-#include "LOF_connection.h"
-#include "LOF_sip.h"
-#include "LOF_user.h"
-#include "LOF_contact.h"
-#include "LOF_config.h"
-#include "LOF_login.h"
-#include "LOF_conversation.h"
-#include "LOF_buddylist.h"
-#include "LOF_history.h"
-#include "LOF_share.h"
-#include "LOF_directsms.h"
-#include "LOF_group.h"
+extern LOF_DATA_HistoryType* LOF_DATA_History_message_new(const char* name,
+		const char* userid, struct tm time,
+		const char* msg , const int issend);
 
-#ifdef __cplusplus
-}
-#endif
+extern void LOF_DATA_History_message_free(LOF_DATA_HistoryType* history);
+
+extern LOF_DATA_FetionHistoryType* LOF_DATA_FetionHistory_new(LOF_DATA_LocalUserType* user);
+
+extern void LOF_DATA_FetionHistory_free(LOF_DATA_FetionHistoryType* fhistory);
+
+extern void LOF_DATA_FetionHistory_add(LOF_DATA_FetionHistoryType* fhistory , LOF_DATA_HistoryType* history);
+
+extern LOF_TOOL_FxListType* LOF_DATA_FetionHistory_get_list(LOF_TOOL_ConfigType* config,
+		const char* userid , int count);
+
+extern LOF_TOOL_FxListType* LOF_DATA_History_get_e_list(LOF_TOOL_ConfigType *config,
+		const char *userid , int type);
+
+extern int LOF_DATA_History_export(LOF_TOOL_ConfigType *config , const char *myid
+		, const char *userid , const char *filename);
+
+extern int LOF_DATA_History_delete(LOF_TOOL_ConfigType *config, const char *userid);
 
 #endif

@@ -29,51 +29,30 @@
  *   OpenSSL library used as well as that of the covered work.             *
  ***************************************************************************/
 
-#ifndef LOF_OPENFETION_H
-#define LOF_OPENFETION_H
+#ifndef LOF_DIRECTSMS_H
+#define LOF_DIRECTSMS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <time.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <unistd.h>
-#define _XOPEN_SOURCE
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#define LOF_PIC_SUCCESS 1
+#define LOF_PIC_ERROR -1
+#define LOF_UNKNOW_ERROR -2
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <libxml/parser.h>
-#include <pthread.h>
-#include <openssl/crypto.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <sqlite3.h>
-#include "LOF_types.h"
-#include "LOF_list.h"
-#include "LOF_debug.h"
-#include "LOF_message.h"
-#include "LOF_connection.h"
-#include "LOF_sip.h"
-#include "LOF_user.h"
-#include "LOF_contact.h"
-#include "LOF_config.h"
-#include "LOF_login.h"
-#include "LOF_conversation.h"
-#include "LOF_buddylist.h"
-#include "LOF_history.h"
-#include "LOF_share.h"
-#include "LOF_directsms.h"
-#include "LOF_group.h"
+#define LOF_SEND_SMS_SUCCESS 1
+#define LOF_SEND_SMS_NEED_AUTHENTICATION -1
+#define LOF_SEND_SMS_OTHER_ERROR -2
 
-#ifdef __cplusplus
-}
-#endif
+#define LOF_DSMS_OPTION_SUCCESS 1
+#define LOF_DSMS_OPTION_FAILED -1
+
+extern void
+LOF_SIP_DRMS_parse_option_verification(LOF_DATA_LocalUserType *user , const char *in);
+
+extern int LOF_DRMS_send_option(LOF_DATA_LocalUserType *user , const char *response);
+extern int
+LOF_SIP_DRMS_parse_subscribe_response(const char *in , char **error);
+extern int LOF_DRMS_send_subscribe(LOF_DATA_LocalUserType *user , const char *code , char **error);
+extern int LOF_DRMS_send_sms(LOF_DATA_LocalUserType *user
+		, const char *to , const char *msg);
+
+
 
 #endif

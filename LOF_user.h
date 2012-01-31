@@ -184,9 +184,5 @@ extern void LOF_USER_save(LOF_DATA_LocalUserType *user);
 
 extern void fetion_user_load(LOF_DATA_LocalUserType *user);
 
-extern void
-LOF_USER_set_st(LOF_DATA_LocalUserType *user, int state){
-	user->status = state;
-}
 
 #endif
