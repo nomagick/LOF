@@ -172,7 +172,7 @@ void LOF_DATA_BuddyContact_list_free(LOF_DATA_BuddyContactType* contact)
 	free(contact);
 }
 
-int LOF_BUDDY_subscribe_only(LOF_DATA_LocalUserType* user)
+int LOF_DATA_BuddyContact_subscribe_only(LOF_DATA_LocalUserType* user)
 {
 	char *res, *body;
 	LOF_SIP_FetionSipType* sip;
@@ -203,7 +203,7 @@ int LOF_BUDDY_subscribe_only(LOF_DATA_LocalUserType* user)
 	return 0;
 }
 
-LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info(LOF_DATA_LocalUserType* user , const char* userid)
+LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_get_contact_info(LOF_DATA_LocalUserType* user , const char* userid)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	char *res , *body , *pos;
@@ -282,7 +282,7 @@ int LOF_DATA_BuddyContact_has_strangers(LOF_DATA_BuddyContactType *contactlist)
 
 }
 
-LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info_by_no(LOF_DATA_LocalUserType* user , const char* no , LOF_TOOL_NumberType nt)
+LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_get_contact_info_by_no(LOF_DATA_LocalUserType* user , const char* no , LOF_TOOL_NumberType nt)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader;
@@ -326,7 +326,7 @@ LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info_by_no(LOF_DATA_LocalUserTy
 		return NULL;
 	}
 }
-int LOF_BUDDY_set_mobileno_permission(LOF_DATA_LocalUserType* user , const char* userid , int show)
+int LOF_DATA_BuddyContact_set_mobileno_permission(LOF_DATA_LocalUserType* user , const char* userid , int show)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader;
@@ -359,7 +359,7 @@ int LOF_BUDDY_set_mobileno_permission(LOF_DATA_LocalUserType* user , const char*
 		return -1;
  	}
 }
-int LOF_BUDDY_set_displayname(LOF_DATA_LocalUserType* user , const char* userid , const char* name)
+int LOF_DATA_BuddyContact_set_displayname(LOF_DATA_LocalUserType* user , const char* userid , const char* name)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader;
@@ -400,7 +400,7 @@ int LOF_BUDDY_set_displayname(LOF_DATA_LocalUserType* user , const char* userid 
 	}
 }
 
-int LOF_BUDDY_move_to_group(LOF_DATA_LocalUserType *user, const char *userid, int old_bl, int new_bl)
+int LOF_DATA_BuddyContact_move_to_group(LOF_DATA_LocalUserType *user, const char *userid, int old_bl, int new_bl)
 {
 	LOF_SIP_FetionSipType *sip = user->sip;
 	LOF_SIP_SipHeaderType *eheader;
@@ -435,7 +435,7 @@ int LOF_BUDDY_move_to_group(LOF_DATA_LocalUserType *user, const char *userid, in
 	return 0;
 }
 
-int LOF_BUDDY_copy_to_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist)
+int LOF_DATA_BuddyContact_copy_to_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist)
 {
 	LOF_SIP_FetionSipType *sip = user->sip;
 	LOF_SIP_SipHeaderType *eheader;
@@ -474,7 +474,7 @@ int LOF_BUDDY_copy_to_group(LOF_DATA_LocalUserType *user, const char *userid, in
 	return 0;
 }
 
-int LOF_BUDDY_remove_from_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist)
+int LOF_DATA_BuddyContact_remove_from_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist)
 {
 	LOF_SIP_FetionSipType *sip = user->sip;
 	LOF_SIP_SipHeaderType *eheader;
@@ -513,7 +513,7 @@ int LOF_BUDDY_remove_from_group(LOF_DATA_LocalUserType *user, const char *userid
 	return 0;
 }
 
-int LOF_BUDDY_delete_buddy(LOF_DATA_LocalUserType* user , const char* userid)
+int LOF_DATA_BuddyContact_delete_buddy(LOF_DATA_LocalUserType* user , const char* userid)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader;
@@ -544,7 +544,7 @@ int LOF_BUDDY_delete_buddy(LOF_DATA_LocalUserType* user , const char* userid)
 
 	return 0;
 }
-LOF_DATA_BuddyContactType* LOF_BUDDY_add_buddy(LOF_DATA_LocalUserType* user , const char* no
+LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_add_buddy(LOF_DATA_LocalUserType* user , const char* no
 								, LOF_TOOL_NumberType notype , int buddylist
 								, const char* localname , const char* desc
 								, int phraseid , int* statuscode)
@@ -1124,7 +1124,7 @@ int LOF_SIP_parse_add_buddy_verification(LOF_DATA_LocalUserType* user , const ch
 	return 0;
 }
 
-void LOF_BUDDY_Contact_load(LOF_DATA_LocalUserType *user, int *gcount, int *bcount)
+void LOF_DATA_BuddyContact_load(LOF_DATA_LocalUserType *user, int *gcount, int *bcount)
 {
 	char path[256];
 	char sql[4096];
@@ -1206,7 +1206,7 @@ void LOF_BUDDY_Contact_load(LOF_DATA_LocalUserType *user, int *gcount, int *bcou
 	sqlite3_free_table(sqlres);
 }
 
-void LOF_BUDDY_Contact_save(LOF_DATA_LocalUserType *user)
+void LOF_DATA_BuddyContact_save(LOF_DATA_LocalUserType *user)
 {
 	char path[256];
 	char sql[4096];
@@ -1293,7 +1293,7 @@ void LOF_BUDDY_Contact_save(LOF_DATA_LocalUserType *user)
 	LOF_debug_info("Save contact list successfully");
 }
 
-void LOF_BUDDY_Contact_update(LOF_DATA_LocalUserType *user, LOF_DATA_BuddyContactType *contact)
+void LOF_DATA_BuddyContact_update(LOF_DATA_LocalUserType *user, LOF_DATA_BuddyContactType *contact)
 {
 	char path[256];
 	char sql[4096];
@@ -1367,7 +1367,7 @@ void LOF_BUDDY_Contact_update(LOF_DATA_LocalUserType *user, LOF_DATA_BuddyContac
 	sqlite3_close(db);
 }
 
-int LOF_BUDDY_del_localbuddy(LOF_DATA_LocalUserType *user, const char *userid)
+int LOF_DATA_BuddyContact_del_localbuddy(LOF_DATA_LocalUserType *user, const char *userid)
 {
 	char path[256];
 	char sql[4096];
@@ -1389,7 +1389,7 @@ int LOF_BUDDY_del_localbuddy(LOF_DATA_LocalUserType *user, const char *userid)
 	return 0;
 }
 
-int LOF_BUDDY_del_localgroup(LOF_DATA_LocalUserType *user, const char *groupid)
+int LOF_DATA_BuddyContact_del_localgroup(LOF_DATA_LocalUserType *user, const char *groupid)
 {
 	char path[256];
 	char sql[4096];

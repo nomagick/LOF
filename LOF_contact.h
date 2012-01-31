@@ -103,7 +103,7 @@ extern int LOF_DATA_BuddyContact_has_strangers(LOF_DATA_BuddyContactType *contac
  * the presence information of contacts will be pushed from the server
  * @return 1 if success , or else -1
  */
-extern int LOF_BUDDY_subscribe_only(LOF_DATA_LocalUserType* user);
+extern int LOF_DATA_BuddyContact_subscribe_only(LOF_DATA_LocalUserType* user);
 
 /**
  * get the contact`s detail information from the sipc server
@@ -111,7 +111,7 @@ extern int LOF_BUDDY_subscribe_only(LOF_DATA_LocalUserType* user);
  * @param userid The user-id of the contact for which to get information
  * @return The Contact object with detail information if success , or else NULL
  */
-extern LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info(LOF_DATA_LocalUserType* user , const char* userid);
+extern LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_get_contact_info(LOF_DATA_LocalUserType* user , const char* userid);
 
 /**
  * get the contact`s detail information from the sipc server with the specified number type
@@ -121,7 +121,7 @@ extern LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info(LOF_DATA_LocalUserT
  * @param nt Number type to specify the type of the second argument
  * @return The Contact object with detail information if success , or else NULL
  */
-extern LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info_by_no(LOF_DATA_LocalUserType* user , const char* no , LOF_TOOL_NumberType nt);
+extern LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_get_contact_info_by_no(LOF_DATA_LocalUserType* user , const char* no , LOF_TOOL_NumberType nt);
 
 /**
  * modify whether to show your mobile phone number to the user specified by userid
@@ -130,41 +130,41 @@ extern LOF_DATA_BuddyContactType* LOF_BUDDY_get_contact_info_by_no(LOF_DATA_Loca
  * @param show If set to 1,then show phone number to this user , while 0 not show
  * @return 1 if success , or else -1
  */
-extern int LOF_BUDDY_set_mobileno_permission(LOF_DATA_LocalUserType* user , const char* userid , int show);
+extern int LOF_DATA_BuddyContact_set_mobileno_permission(LOF_DATA_LocalUserType* user , const char* userid , int show);
 
 /**
  * modify the display name of the user specified by the userid
  * @return 1 if success , or else -1
  */
-extern int LOF_BUDDY_set_displayname(LOF_DATA_LocalUserType* user , const char* userid , const char* name);
+extern int LOF_DATA_BuddyContact_set_displayname(LOF_DATA_LocalUserType* user , const char* userid , const char* name);
 
 /**
  * move the user specified by userid to the new user group specified by the buddylist
  * @param user Global User object
  * @return 1 if success , orelse -1
  */
-extern int LOF_BUDDY_move_to_group(LOF_DATA_LocalUserType *user, const char *userid, int old_bl, int new_bl);
+extern int LOF_DATA_BuddyContact_move_to_group(LOF_DATA_LocalUserType *user, const char *userid, int old_bl, int new_bl);
 
 /**
  * copy the buddy specified by userid to the new group specified by the buddylist
  * @param user Global User object
  * @return 1 if success , orelse -1
  */
-extern int LOF_BUDDY_copy_to_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist);
+extern int LOF_DATA_BuddyContact_copy_to_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist);
 
 /**
  * remove the buddy specified by userid from the group specified by the buddylist
  * @param user Global User object
  * @return 1 if success , orelse -1
  */
-extern int LOF_BUDDY_remove_from_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist);
+extern int LOF_DATA_BuddyContact_remove_from_group(LOF_DATA_LocalUserType *user, const char *userid, int buddylist);
 
 /**
  * delete a user specified by userid from your contact
  * @param user Global User object
  * @param userid To specify the user to be deleted
  */
-extern int LOF_BUDDY_delete_buddy(LOF_DATA_LocalUserType* user , const char* userid);
+extern int LOF_DATA_BuddyContact_delete_buddy(LOF_DATA_LocalUserType* user , const char* userid);
 
 /**
  * send an Add-Buddy request to sipc server
@@ -177,7 +177,7 @@ extern int LOF_BUDDY_delete_buddy(LOF_DATA_LocalUserType* user , const char* use
  * @param phraseid To specify which Add-Buddy phrase to use
  * @return the contact contains the basic information of the new uesr
  */
-extern LOF_DATA_BuddyContactType* LOF_BUDDY_add_buddy(LOF_DATA_LocalUserType* user , const char* no
+extern LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_add_buddy(LOF_DATA_LocalUserType* user , const char* no
 		, LOF_TOOL_NumberType notype , int buddylist
 		, const char* localname , const char* desc
 		, int phraseid , int* statuscode);
@@ -191,27 +191,27 @@ LOF_DATA_BuddyContactType* LOF_SIP_handle_contact_request(LOF_DATA_LocalUserType
  * @param gcount to be filled with count of group stored in local database
  * @param bcount to be filled with count of buddy count stored in local database
  */
-extern void LOF_BUDDY_Contact_load(LOF_DATA_LocalUserType *user, int *gcount, int *bcount);
+extern void LOF_DATA_BuddyContact_load(LOF_DATA_LocalUserType *user, int *gcount, int *bcount);
 
 /**
  * save contact list into local database
  */
-extern void LOF_BUDDY_Contact_save(LOF_DATA_LocalUserType *user);
+extern void LOF_DATA_BuddyContact_save(LOF_DATA_LocalUserType *user);
 
 /**
  * update a specified contact information in the database
  */
-extern void LOF_BUDDY_Contact_update(LOF_DATA_LocalUserType *user, LOF_DATA_BuddyContactType *contact);
+extern void LOF_DATA_BuddyContact_update(LOF_DATA_LocalUserType *user, LOF_DATA_BuddyContactType *contact);
 
 /**
  * delete buddy information with specified userid from local database
  */
-extern int LOF_BUDDY_del_localbuddy(LOF_DATA_LocalUserType *user, const char *userid);
+extern int LOF_DATA_BuddyContact_del_localbuddy(LOF_DATA_LocalUserType *user, const char *userid);
 
 /**
  * delete group information with specified groupid from local database;
  */
-extern int LOF_BUDDY_del_localgroup(LOF_DATA_LocalUserType *user, const char *groupid);
+extern int LOF_DATA_BuddyContact_del_localgroup(LOF_DATA_LocalUserType *user, const char *groupid);
 
 extern int LOF_SIP_parse_add_buddy_verification(LOF_DATA_LocalUserType* user , const char* str);
 extern char* LOF_SIP_generate_contact_info_body(const char* userid);

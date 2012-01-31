@@ -39,6 +39,7 @@ extern LOF_TOOL_ConfigType* LOF_TOOL_Config_new();
 extern LOF_TOOL_FxListType* LOF_TOOL_Config_get_phrase(LOF_TOOL_ConfigType* config);
 
 extern int LOF_TOOL_Config_initialize(LOF_TOOL_ConfigType* config , const char* userid);
+extern int LOF_DATA_LocalUser_download_configuration(LOF_DATA_LocalUserType* user);
 
 //extern int fetion_config_load_size(Config *config);
 

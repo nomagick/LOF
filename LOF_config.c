@@ -423,7 +423,7 @@ int LOF_TOOL_parse_configuration_xml(LOF_DATA_LocalUserType *user, const char *x
 	LOF_TOOL_save_phrase(node, user);
 	return 1;
 }
-int LOF_USER_download_configuration(LOF_DATA_LocalUserType* user)
+int LOF_DATA_LocalUser_download_configuration(LOF_DATA_LocalUserType* user)
 {
 	char http[1025] , *body , *res;
 	LOF_CONNECTION_FetionConnectionType* conn = NULL;

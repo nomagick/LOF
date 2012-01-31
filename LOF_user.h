@@ -31,7 +31,7 @@
 
 #ifndef LOF_USER_H
 #define LOF_USER_H
-extern LOF_DATA_UnackedListType *LOF_GLOBAL_unackedlist;
+LOF_DATA_UnackedListType *LOF_GLOBAL_unackedlist;
 /*#define STATE_ONLINE       400
 #define STATE_RIGHTBACK    300
 #define STATE_AWAY         100
@@ -52,7 +52,7 @@ extern LOF_DATA_UnackedListType *LOF_GLOBAL_unackedlist;
  * @password Nothing special , just your fetion password
  * @return The user object created
  */
-extern LOF_DATA_LocalUserType* LOF_USER_LocalUser_new(const char* no , const char* password);
+extern LOF_DATA_LocalUserType* LOF_DATA_LocalUser_new(const char* no , const char* password);
 
 extern void LOF_DATA_LocalUser_set_userid(LOF_DATA_LocalUserType* user, const char* userid1);
 
@@ -68,7 +68,7 @@ extern void LOF_DATA_LocalUser_set_config(LOF_DATA_LocalUserType* user , LOF_TOO
 
 extern void LOF_DATA_LocalUser_set_verification_code(LOF_DATA_LocalUserType* user , const char* code);
 
-extern int LOF_USER_init_config(LOF_DATA_LocalUserType *user);
+extern int LOF_DATA_LocalUser_init_config(LOF_DATA_LocalUserType *user);
 
 extern void LOF_DATA_LocalUser_free(LOF_DATA_LocalUserType* user);
 
@@ -78,7 +78,7 @@ extern void LOF_DATA_LocalUser_free(LOF_DATA_LocalUserType* user);
  * @param filename The absolute filepath of the portrait file to be uploaded
  * @return 1 if success , or else -1
  */
-extern int LOF_USER_upload_avatar(LOF_DATA_LocalUserType* user , const char* filename);
+extern int LOF_DATA_LocalUser_upload_avatar(LOF_DATA_LocalUserType* user , const char* filename);
 
 /**
  * download portrait of specified user
@@ -86,7 +86,7 @@ extern int LOF_USER_upload_avatar(LOF_DATA_LocalUserType* user , const char* fil
  * @param sipuri sip uri of the user whose portrait will be downloaded
  * @return 1 if success, or else -1
  */
-extern int LOF_USER_download_avatar(LOF_DATA_LocalUserType* user , const char* sipuri);
+extern int LOF_DATA_LocalUser_download_avatar(LOF_DATA_LocalUserType* user , const char* sipuri);
 
 /**
  * download portrait of specified sipuri with
@@ -97,7 +97,7 @@ extern int LOF_USER_download_avatar(LOF_DATA_LocalUserType* user , const char* s
  * @param portraitPath The uri path of the portrait server,like '/HD00S/getportrait.aspx'
  * @return 1 if success , or else -1
  */
-extern int LOF_USER_download_avatar_with_uri(LOF_DATA_LocalUserType *user , const char *sipuri
+extern int LOF_DATA_LocalUser_download_avatar_with_uri(LOF_DATA_LocalUserType *user , const char *sipuri
        	, const char *server , const char *portraitpath);
 
 /**
@@ -106,7 +106,7 @@ extern int LOF_USER_download_avatar_with_uri(LOF_DATA_LocalUserType *user , cons
  * @param state The online state type
  * @return 1 if success , or else -1
  */
-extern int LOF_USER_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusType state);
+extern int LOF_DATA_LocalUser_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusType state);
 
 /**
  * modify the user`s personal signature
@@ -114,14 +114,14 @@ extern int LOF_USER_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusTyp
  * @param moodphrase The new personal signature string
  * @return 1 if success , or else -1
  */
-extern int LOF_USER_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphrase);
+extern int LOF_DATA_LocalUser_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphrase);
 
 /**
  * reload the user`s detail information from the sipc server
  * @param user Global User object
  * @return 1 if  success , or else -1
  */
-extern int LOF_USER_update_info(LOF_DATA_LocalUserType* user);
+extern int LOF_DATA_LocalUser_update_info(LOF_DATA_LocalUserType* user);
 
 /**
  * send a keep-alive message to the sipc server to tell that the client 
@@ -129,7 +129,7 @@ extern int LOF_USER_update_info(LOF_DATA_LocalUserType* user);
  * @param user Global User object
  * @return 1 if success , or else -1
  */
-extern int LOF_USER_keep_alive(LOF_DATA_LocalUserType* user);
+extern int LOF_DATA_LocalUser_keep_alive(LOF_DATA_LocalUserType* user);
 
 /**
  * traverse the two-way linked list of user group
@@ -178,11 +178,11 @@ extern LOF_DATA_BuddyContactType* LOF_SIP_parse_presence_body(const char* body ,
 
 extern LOF_DATA_BuddyContactType* LOF_SIP_parse_syncuserinfo_body(const char* body , LOF_DATA_LocalUserType* user);
 
-extern int LOF_USER_set_sms_status(LOF_DATA_LocalUserType *user , int days);
+extern int LOF_DATA_LocalUser_set_sms_status(LOF_DATA_LocalUserType *user , int days);
 
-extern void LOF_USER_save(LOF_DATA_LocalUserType *user);
+extern void LOF_DATA_LocalUser_save(LOF_DATA_LocalUserType *user);
 
-extern void fetion_user_load(LOF_DATA_LocalUserType *user);
+extern void LOF_DATA_LocalUser_load(LOF_DATA_LocalUserType *user);
 
 
 #endif

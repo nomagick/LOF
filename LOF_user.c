@@ -34,7 +34,7 @@
 
 
 
-int LOF_USER_download_avatar_again(const char* filepath , const char* buf , LOF_CONNECTION_ProxyType *proxy);
+int LOF_DATA_LocalUser_download_avatar_again(const char* filepath , const char* buf , LOF_CONNECTION_ProxyType *proxy);
 char* LOF_SIP_generate_set_status_body(LOF_USER_StatusType state);
  char* LOF_SIP_generate_set_moodphrase_body(const char* customConfigVersion
 				, const char* customConfig , const char* personalVersion ,  const char* moodphrase);
@@ -44,7 +44,7 @@ char* LOF_SIP_generate_set_status_body(LOF_USER_StatusType state);
  char* LOF_SIP_generate_set_sms_status_body(int days);
  void LOF_SIP_parse_set_sms_status_response(LOF_DATA_LocalUserType *user , const char *sipmsg);
 
-LOF_DATA_LocalUserType* LOF_USER_LocalUser_new(const char* no , const char* password)
+LOF_DATA_LocalUserType* LOF_DATA_LocalUser_new(const char* no , const char* password)
 {
 	LOF_DATA_LocalUserType* user = (LOF_DATA_LocalUserType*)malloc(sizeof(LOF_DATA_LocalUserType));
 
@@ -115,7 +115,7 @@ void LOF_DATA_LocalUser_set_verification_code(LOF_DATA_LocalUserType* user , con
 	strcpy(user->verification->code , code);
 }
 
-int LOF_USER_init_config(LOF_DATA_LocalUserType *user)
+int LOF_DATA_LocalUser_init_config(LOF_DATA_LocalUserType *user)
 {
 	assert(user != NULL);
 	assert(user->config != NULL);
@@ -137,7 +137,7 @@ void LOF_DATA_LocalUser_free(LOF_DATA_LocalUserType* user)
 		LOF_TOOL_Config_free(user->config);
 	free(user);
 }
-int LOF_USER_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusType state)
+int LOF_DATA_LocalUser_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusType state)
 {
 	LOF_SIP_SipHeaderType* eheader;
 	LOF_SIP_FetionSipType* sip = user->sip;
@@ -156,7 +156,7 @@ int LOF_USER_set_status(LOF_DATA_LocalUserType* user , LOF_USER_StatusType state
 	LOF_debug_info("User status changed to %d" , state);
 	return 1;
 }
-int LOF_USER_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphrase)
+int LOF_DATA_LocalUser_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphrase)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader;
@@ -188,7 +188,7 @@ int LOF_USER_set_moodphrase(LOF_DATA_LocalUserType* user , const char* moodphras
 	}
 
 }
-int LOF_USER_update_info(LOF_DATA_LocalUserType* user)
+int LOF_DATA_LocalUser_update_info(LOF_DATA_LocalUserType* user)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader = NULL;
@@ -216,7 +216,7 @@ int LOF_USER_update_info(LOF_DATA_LocalUserType* user)
 		return -1;
 	}
 }
-int LOF_USER_keep_alive(LOF_DATA_LocalUserType* user)
+int LOF_DATA_LocalUser_keep_alive(LOF_DATA_LocalUserType* user)
 {
 	LOF_SIP_FetionSipType* sip = user->sip;
 	LOF_SIP_SipHeaderType* eheader = NULL;
@@ -308,7 +308,7 @@ void LOF_DATA_Verification_free(LOF_DATA_VerificationType* ver)
 	free(ver);
 }
 
-int LOF_USER_upload_avatar(LOF_DATA_LocalUserType* user , const char* filename)
+int LOF_DATA_LocalUser_upload_avatar(LOF_DATA_LocalUserType* user , const char* filename)
 {
 	char http[1024];
 	unsigned char buf[1024];
@@ -379,7 +379,7 @@ int LOF_USER_upload_avatar(LOF_DATA_LocalUserType* user , const char* filename)
 	}
 }
 
-int LOF_USER_set_sms_status(LOF_DATA_LocalUserType *user , int days)
+int LOF_DATA_LocalUser_set_sms_status(LOF_DATA_LocalUserType *user , int days)
 {
 	LOF_SIP_FetionSipType *sip = user->sip;
 	LOF_SIP_SipHeaderType *eheader;
@@ -414,17 +414,17 @@ int LOF_USER_set_sms_status(LOF_DATA_LocalUserType *user , int days)
 	return 1;
 }
 
-int LOF_USER_download_avatar(LOF_DATA_LocalUserType* user , const char* sipuri)
+int LOF_DATA_LocalUser_download_avatar(LOF_DATA_LocalUserType* user , const char* sipuri)
 {
     char uri[256];
 	char *server = user->config->avatarServerName;
 	char *portraitPath = user->config->avatarServerPath;
 	sprintf(uri , "/%s/getportrait.aspx" , portraitPath);
 
-	return LOF_USER_download_avatar_with_uri(user , sipuri , server , uri);
+	return LOF_DATA_LocalUser_download_avatar_with_uri(user , sipuri , server , uri);
 }
 
-int LOF_USER_download_avatar_with_uri(LOF_DATA_LocalUserType *user , const char *sipuri
+int LOF_DATA_LocalUser_download_avatar_with_uri(LOF_DATA_LocalUserType *user , const char *sipuri
        	, const char *server , const char *portraitpath)
 {
 	char buf[2048] , *ip , *pos = NULL;
@@ -545,7 +545,7 @@ int LOF_USER_download_avatar_with_uri(LOF_DATA_LocalUserType *user , const char 
 	}
 redirect:
 	if(strcmp(replyCode , "302") == 0)
-		ret = LOF_USER_download_avatar_again(filename , buf , config->proxy);
+		ret = LOF_DATA_LocalUser_download_avatar_again(filename , buf , config->proxy);
 end:
 	if(f != NULL)
 		fclose(f);
@@ -556,7 +556,7 @@ end:
 	return 1;
 }
 
-int LOF_USER_download_avatar_again(const char* filepath , const char* buf , LOF_CONNECTION_ProxyType* proxy)
+int LOF_DATA_LocalUser_download_avatar_again(const char* filepath , const char* buf , LOF_CONNECTION_ProxyType* proxy)
 {
 	char location[1024] = { 0 };
 	char httpHost[50] = { 0 };
@@ -834,7 +834,7 @@ LOF_DATA_BuddyContactType* LOF_SIP_parse_syncuserinfo_body(const char* body , LO
 	return currentContact;
 }
 
-void LOF_USER_save(LOF_DATA_LocalUserType *user)
+void LOF_DATA_LocalUser_save(LOF_DATA_LocalUserType *user)
 {
 	char path[256];
 	char sql[4096];
@@ -892,7 +892,7 @@ void LOF_USER_save(LOF_DATA_LocalUserType *user)
 	sqlite3_close(db);
 }
 
-void fetion_user_load(LOF_DATA_LocalUserType *user)
+void LOF_DATA_LocalUser_load(LOF_DATA_LocalUserType *user)
 {
 	char path[256];
 	char sql[4096];
