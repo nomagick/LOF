@@ -31,7 +31,7 @@
 
 #ifndef LOF_USER_H
 #define LOF_USER_H
-LOF_DATA_UnackedListType *LOF_GLOBAL_unackedlist;
+//LOF_DATA_UnackedListType *LOF_GLOBAL_unackedlist;
 /*#define STATE_ONLINE       400
 #define STATE_RIGHTBACK    300
 #define STATE_AWAY         100

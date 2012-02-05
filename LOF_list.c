@@ -49,10 +49,11 @@ void LOF_TOOL_FxList_free(LOF_TOOL_FxListType *fxitem)
 
 void LOF_TOOL_FxList_append(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem)
 {
-	fxlist->next->pre = fxitem;
-	fxitem->next = fxlist->next;
-	fxitem->pre = fxlist;
-	fxlist->next = fxitem;
+	LOF_TOOL_FxListType *ptr;
+	ptr=fxlist;
+	while(ptr->next!=ptr)ptr=ptr->next;
+	ptr->next = fxitem;
+	fxitem->pre = ptr;
 }
 
 void LOF_TOOL_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem)
@@ -65,6 +66,8 @@ void LOF_TOOL_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *
 
 void LOF_TOOL_FxList_remove(LOF_TOOL_FxListType *fxitem)
 {
-	fxitem->next->pre = fxitem->pre;
-	fxitem->pre->next = fxitem->next;
+	if(fxitem->next!=fxitem){(fxitem->pre)->next=(fxitem->next);}else
+	(fxitem->pre)->next = (fxitem->pre);
+	free(fxitem->data);
+	free(fxitem);
 }

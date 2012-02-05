@@ -228,4 +228,7 @@ extern struct tm LOF_TOOL_convert_date(const char* date);
 
 extern inline void
 LOF_SIP_set_conn(LOF_SIP_FetionSipType *sip, LOF_CONNECTION_FetionConnectionType *conn);
+extern char *LOF_TOOL_generate_action_accept_body(LOF_DATA_ShareType *share);
+extern LOF_DATA_SipMsgType *LOF_DATA_SipMsg_new(void);
+extern void LOF_DATA_SipMsg_set_msg(LOF_DATA_SipMsgType *sipmsg, const char *msg, int n);
 #endif

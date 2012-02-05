@@ -70,7 +70,7 @@ LOF_DATA_LocalUserType* LOF_DATA_LocalUser_new(const char* no , const char* pass
 	user->ssic = NULL;
 	user->config = NULL;
 
-	LOF_GLOBAL_unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)NULL);
+//	LOF_GLOBAL_unackedlist = LOF_DATA_UnackedList_new((LOF_DATA_FetionMessageType*)NULL);
 
 	return user;
 }
@@ -770,6 +770,7 @@ LOF_DATA_BuddyContactType* LOF_SIP_parse_presence_body(const char* body , LOF_DA
 		memset(contact , 0 , sizeof(contact));
 		memcpy(contact , currentContact , sizeof(LOF_DATA_BuddyContactType));
 		LOF_DATA_BuddyContact_list_append(contactres , contact);
+		LOF_debug_info("BuddyContact Updated For %s.",contact->nickname);
 		node = node->next;
 	}
 	xmlFreeDoc(doc);

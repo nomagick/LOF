@@ -371,6 +371,7 @@ typedef struct {
 	LOF_DATA_LocalUserType       *currentUser;			 /* current user,ourselves									   */
 	LOF_SIP_FetionSipType  *currentSip;				 /* sip struct used to send message
 										  * NULL if did not start a chat channel for this conversation */
+	int ready;
 } LOF_USER_ConversationType;
 
 
@@ -476,6 +477,7 @@ typedef enum
 	LOF_NOTIFICATION_EVENT_DEREGISTRATION ,
 	LOF_NOTIFICATION_EVENT_SYNCUSERINFO ,
 	LOF_NOTIFICATION_EVENT_PGGETGROUPINFO ,
+	LOF_NOTIFICATION_EVENT_USERENTER,
 	LOF_NOTIFICATION_EVENT_UNKNOWN
 } LOF_EVENT_NotificationEventType;
 

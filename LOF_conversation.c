@@ -53,6 +53,7 @@ LOF_USER_ConversationType* LOF_USER_Conversation_new(LOF_DATA_LocalUserType* use
 		return NULL;
 	}
 	conversation->currentSip = sip;
+	conversation->ready = 0;
 	return conversation;
 }
 
@@ -77,16 +78,16 @@ int LOF_USER_Conversation_send_sms(LOF_USER_ConversationType* conversation , con
 	LOF_SIP_FetionSip_add_header(sip , kheader);
 	LOF_SIP_FetionSip_add_header(sip , nheader);
 	/* add message to list */
-	now = LOF_TOOL_get_currenttime();
+	/*now = LOF_TOOL_get_currenttime();
 	now_copy = *now;
 	message = LOF_DATA_FetionMessage_new();
 	LOF_DATA_FetionMessage_set_sipuri(message , conversation->currentContact->sipuri);
 	LOF_DATA_FetionMessage_set_time(message , now_copy);
 	LOF_DATA_FetionMessage_set_message(message , msg);
 	LOF_DATA_FetionMessage_set_callid(message , sip->callid);
-	unacked = LOF_DATA_UnackedList_new(message);
-	LOF_DATA_UnackedList_append(LOF_GLOBAL_unackedlist , unacked);
-
+	//unacked = LOF_DATA_UnackedList_new(message);
+	//LOF_DATA_UnackedList_append(LOF_GLOBAL_unackedlist , unacked);
+*/
 	res = LOF_SIP_to_string(sip , msg);
 
 	if(LOF_CONNECTION_FetionConnection_send(sip->tcp , res , strlen(res)) == -1){

@@ -471,7 +471,7 @@ void LOF_SIP_get_auth_attr(const char* auth , char** ipaddress , int* port , cha
 	strncpy(*credential , pos , strlen(pos) - 1);
 }
 
-static LOF_DATA_SipMsgType *LOF_DATA_SipMsg_new(void)
+LOF_DATA_SipMsgType *LOF_DATA_SipMsg_new(void)
 {
 	LOF_DATA_SipMsgType *msg = (LOF_DATA_SipMsgType*)malloc(sizeof(LOF_DATA_SipMsgType));
 	memset(msg, 0, sizeof(LOF_DATA_SipMsgType));
@@ -479,7 +479,7 @@ static LOF_DATA_SipMsgType *LOF_DATA_SipMsg_new(void)
 	return msg;
 }
 
-static void LOF_DATA_SipMsg_set_msg(LOF_DATA_SipMsgType *sipmsg, const char *msg, int n)
+void LOF_DATA_SipMsg_set_msg(LOF_DATA_SipMsgType *sipmsg, const char *msg, int n)
 {
 	sipmsg->message = (char*)malloc(n + 1);
 	memset(sipmsg->message, 0, n + 1);
@@ -507,7 +507,7 @@ LOF_DATA_SipMsgType* LOF_SIP_FetionSip_listen(LOF_SIP_FetionSipType *sip, int *e
 				buffer, sizeof(buffer) - 1);
 	if(n == 0){
 		LOF_debug_info("fetion_sip_listen 0");
-		*error = 1;
+		*error = 2;
 		return list;
 	}
 	if(n < 0){
@@ -677,6 +677,8 @@ void LOF_SIP_parse_notification(const char* sip , int* type , int* event , char*
 		*event = LOF_NOTIFICATION_EVENT_ADDBUDDYAPPLICATION;
 	else if(xmlStrcmp(event1 , BAD_CAST "PGGetGroupInfo") == 0)
 	    	*event = LOF_NOTIFICATION_EVENT_PGGETGROUPINFO;
+	else if(xmlStrcmp(event1, BAD_CAST "UserEntered") == 0)
+		*event = LOF_NOTIFICATION_EVENT_USERENTER;
 	else
 		*event = LOF_NOTIFICATION_EVENT_UNKNOWN;
 	xmlFree(event1);
@@ -804,7 +806,7 @@ void LOF_SIP_parse_invitation(LOF_SIP_FetionSipType* sip , LOF_CONNECTION_ProxyT
 	free(sipres);
 	free(ipaddress);
 	memset(buf , 0 , sizeof(buf));
-	port = LOF_CONNECTION_FetionConnection_recv(conn , buf , sizeof(buf));
+//	port = LOF_CONNECTION_FetionConnection_recv(conn , buf , sizeof(buf));
 
 	memset((*conversionSip)->sipuri, 0, sizeof((*conversionSip)->sipuri));
 	strcpy((*conversionSip)->sipuri , *sipuri);
@@ -865,10 +867,11 @@ void LOF_SIP_parse_incoming(LOF_SIP_FetionSipType* sip
 	node = xmlDocGetRootElement(doc);
 	if(xmlStrcmp(node->name , BAD_CAST "share-content") == 0){
 		LOF_debug_info("Received a share-content IN message");
+		*type = LOF_INCOMING_SHARE_CONTENT;
+		/*
 		*sipuri = (char*)malloc(48);
 		memset(*sipuri, 0, 48);
 		LOF_SIP_get_attr(sipmsg , "F" , *sipuri);
-		*type = LOF_INCOMING_SHARE_CONTENT;
 		if(! xmlHasProp(node , BAD_CAST "action")){
 			*action = LOF_INCOMING_ACTION_UNKNOWN;
 			xmlFreeDoc(doc);
@@ -885,9 +888,9 @@ void LOF_SIP_parse_incoming(LOF_SIP_FetionSipType* sip
 		xmlFree(res);
 		xmlFreeDoc(doc);
 		return;
-	}
+	}*/}
 	if(xmlStrcmp(node->name , BAD_CAST "is-composing") != 0){
-		LOF_debug_info("Received a unhandled sip message , thanks for sending it to the author");
+		LOF_debug_info("WTF??");
 		*type = LOF_INCOMING_UNKNOWN;
 		xmlFreeDoc(doc);
 		return;
@@ -913,10 +916,14 @@ void LOF_SIP_parse_incoming(LOF_SIP_FetionSipType* sip
 						 , *sipuri , callid , seq);
 		LOF_CONNECTION_FetionConnection_send(sip->tcp , replyMsg , strlen(replyMsg));
 		if(xmlStrcmp(res, BAD_CAST "nudge") == 0)
+			{
 			*type = LOF_INCOMING_NUDGE;
+		}
 		else
+		{
 			*type = LOF_INCOMING_INPUT;
-	}
+		}
+		}
 	xmlFree(res);
 	xmlFreeDoc(doc);
 }
@@ -939,7 +946,7 @@ void LOF_SIP_parse_userleft(const char* sipmsg , char** sipuri)
 	xmlFreeDoc(doc);
 }
 
-static char *LOF_TOOL_generate_action_accept_body(LOF_DATA_ShareType *share)
+char *LOF_TOOL_generate_action_accept_body(LOF_DATA_ShareType *share)
 {
 	xmlChar *buf = NULL;
 	xmlDocPtr doc;

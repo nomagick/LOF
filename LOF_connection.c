@@ -262,6 +262,7 @@ int LOF_CONNECTION_FetionConnection_select_read(LOF_CONNECTION_FetionConnectionT
 }
 int LOF_CONNECTION_FetionConnection_send(LOF_CONNECTION_FetionConnectionType* connection , const void* buf , int len)
 {
+//	printf ("\nGona Send! \n%s\n\n ");
 	return send(connection->socketfd , buf , len , 0);
 }
 
