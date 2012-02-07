@@ -66,8 +66,48 @@ void LOF_TOOL_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *
 
 void LOF_TOOL_FxList_remove(LOF_TOOL_FxListType *fxitem)
 {
-	if(fxitem->next!=fxitem){(fxitem->pre)->next=(fxitem->next);}else
-	(fxitem->pre)->next = (fxitem->pre);
+	if((fxitem->next)!=fxitem){(fxitem->pre)->next=fxitem->next;}else
+	(fxitem->pre)->next = fxitem->pre;
 	free(fxitem->data);
 	free(fxitem);
+}
+void LOF_TOOL_FxList_del(LOF_TOOL_FxListType **fxitem)
+{
+	LOF_TOOL_FxListType* backupptr;
+	if (fxitem == NULL||*fxitem==NULL) return;
+	if (((*fxitem)->pre) == *fxitem){
+		if (((*fxitem)->next) == *fxitem){
+			free((*fxitem)->data);
+			free(*fxitem);
+			*fxitem = NULL;
+			return;
+		}
+		else{
+			backupptr = ((*fxitem)->next);
+			free((*fxitem)->data);
+			free(*fxitem);
+			(*fxitem) = backupptr;
+			(*fxitem)->pre = *fxitem;
+			return;
+		}
+	}
+	else{
+		if (((*fxitem)->next) != *fxitem){
+
+			((*fxitem)->pre)->next = ((*fxitem)->next);
+			((*fxitem)->next)->pre = ((*fxitem)->pre);
+			free((*fxitem)->data);
+			free(*fxitem);
+
+			return;
+		}
+		else{
+			((*fxitem)->pre)->next = ((*fxitem)->pre);
+			free((*fxitem)->data);
+			free(*fxitem);
+			return;
+		}
+	}
+	LOF_debug_error("Did Nothing While Deleting A FxList.");
+	return;
 }

@@ -53,10 +53,29 @@ LOF_USER_ConversationType* LOF_USER_Conversation_new(LOF_DATA_LocalUserType* use
 		return NULL;
 	}
 	conversation->currentSip = sip;
-	conversation->ready = 0;
+	conversation->ready = (sip == NULL )? -1 : 0 ;
 	return conversation;
 }
-
+LOF_USER_ConversationType* LOF_USER_Conversation_new_sid(LOF_DATA_LocalUserType* user,
+			  const char* sid , LOF_SIP_FetionSipType* sip)
+{
+	LOF_debug_info("Gona Creat Conversation By Sid, Which is %s.",sid);
+	LOF_USER_ConversationType* conversation = (LOF_USER_ConversationType*)malloc(sizeof(LOF_USER_ConversationType));
+	memset(conversation , 0 , sizeof(LOF_USER_ConversationType));
+	conversation->currentUser = user;
+	if(sid != NULL)
+		conversation->currentContact =
+				LOF_DATA_BuddyContact_list_find_by_sid(user->contactList , sid);
+	else
+		conversation->currentContact = NULL;
+	if(sid != NULL && conversation->currentContact == NULL){
+		free(conversation);
+		return NULL;
+	}
+	conversation->currentSip = sip;
+	conversation->ready = (sip == NULL )? -1 : 0 ;
+	return conversation;
+}
 int LOF_USER_Conversation_send_sms(LOF_USER_ConversationType* conversation , const char* msg)
 {
 	LOF_SIP_FetionSipType* sip = conversation->currentSip == NULL ?

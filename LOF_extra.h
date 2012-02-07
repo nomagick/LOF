@@ -2,15 +2,16 @@
 #define LOF_EXTRA_H
 #define LOF_TOOL_SLEEP_TARGET_SECOND 2.0
 
-
+int LOF_GLOBAL_CommandId = 1;
 
 typedef struct {clock_t begin, end;}LOF_TOOL_StopWatchType;
 extern LOF_TOOL_StopWatchType* LOF_TOOL_StopWatch_new();
 extern void LOF_TOOL_StopWatch_start(LOF_TOOL_StopWatchType* the_watch);
 extern void LOF_TOOL_StopWatch_stop(LOF_TOOL_StopWatchType* the_watch);
-void LOF_TOOL_AutoSleep(LOF_TOOL_StopWatchType* the_watch,int usleeptime);
+extern int LOF_TOOL_StopWatch_read(LOF_TOOL_StopWatchType* the_watch);
+extern void LOF_TOOL_AutoKeepAlive(LOF_DATA_LocalUserType* user,LOF_TOOL_StopWatchType* the_watch,int waitsec);
 typedef enum {
-		LOF_COMMAND_STATUS_NOT_HANDALED = 	0,
+		LOF_COMMAND_STATUS_NOT_HANDLED = 	0,
 		LOF_COMMAND_STATUS_ON_HOLD = 	 2 ,
 		LOF_COMMAND_STATUS_SUCCESS = 	1 ,
 		LOF_COMMAND_STATUS_FAIL = 		-1
@@ -28,11 +29,19 @@ typedef enum {
 typedef struct {
 	LOF_TOOL_Command_StatusType Status;
 	LOF_TOOL_Command_InstructionType Instruction;
+	int CommandId;
 	int Progress;
+	int Retry;
 	int Callid;
 	char* Pram1;
 	char* Pram2;
 	char* BackSipMsg;
 }LOF_TOOL_CommandType;
 extern LOF_TOOL_CommandType* LOF_TOOL_Command_new(LOF_TOOL_Command_InstructionType command,const char* pram1,const char* pram2);
+extern int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_FxListType* ConversationList);
+extern int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType* ConversationList);
+extern int LOF_TOOL_Command_ack_sipc40 (LOF_TOOL_FxListType* Command_List, char* sipc40msg);
+extern int LOF_TOOL_Command_arrange(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** Command_List,const char* command,const char* pram1,const char* pram2);
+extern void LOF_TOOL_Command_destroy(LOF_TOOL_CommandType* The_Command);
+
 #endif

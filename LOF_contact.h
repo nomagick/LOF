@@ -65,7 +65,7 @@ extern LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_list_find_by_userid(LOF_
  * find the contact in the contact list by the specified mobilenumber
  */
 extern LOF_DATA_BuddyContactType *LOF_DATA_BuddyContact_list_find_by_mobileno(LOF_DATA_BuddyContactType *contactlist, const char *mobileno);
-
+extern LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_list_find_by_sid(LOF_DATA_BuddyContactType* contactlist , const char* sid);
 /**
  * find the contact in the contact list by the specified sipuri
  */

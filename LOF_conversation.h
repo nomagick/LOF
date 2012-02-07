@@ -39,7 +39,8 @@
  */
 extern LOF_USER_ConversationType* LOF_USER_Conversation_new(LOF_DATA_LocalUserType* user,
 		  const char* sipuri , LOF_SIP_FetionSipType* sip);
-
+extern LOF_USER_ConversationType* LOF_USER_Conversation_new_sid(LOF_DATA_LocalUserType* user,
+		  const char* sid , LOF_SIP_FetionSipType* sip);
 /**
  * send a message to the user in this conversation
  * @note before you send a message to an online buddy , in other word ,

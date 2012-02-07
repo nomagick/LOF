@@ -49,5 +49,6 @@ extern void LOF_TOOL_FxList_append(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxList
 extern void LOF_TOOL_FxList_prepend(LOF_TOOL_FxListType *fxlist , LOF_TOOL_FxListType *fxitem);
 
 extern void LOF_TOOL_FxList_remove(LOF_TOOL_FxListType *fxitem);
+extern void LOF_TOOL_FxList_del(LOF_TOOL_FxListType **fxitem);
 
 #endif

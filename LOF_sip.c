@@ -664,6 +664,8 @@ void LOF_SIP_parse_notification(const char* sip , int* type , int* event , char*
 	doc = xmlReadMemory(*xml , strlen(*xml) , NULL , "UTF-8" , XML_PARSE_RECOVER);
 	node = xmlDocGetRootElement(doc);
 	node = LOF_TOOL_xml_goto_node(node , "event");
+	*event = LOF_NOTIFICATION_EVENT_UNKNOWN;
+	while ((node != NULL) && (*event == LOF_NOTIFICATION_EVENT_UNKNOWN)){
 	event1 = xmlGetProp(node ,  BAD_CAST "type");
 	if(xmlStrcmp(event1 , BAD_CAST "PresenceChanged") == 0)
 		*event = LOF_NOTIFICATION_EVENT_PRESENCECHANGED;
@@ -679,8 +681,12 @@ void LOF_SIP_parse_notification(const char* sip , int* type , int* event , char*
 	    	*event = LOF_NOTIFICATION_EVENT_PGGETGROUPINFO;
 	else if(xmlStrcmp(event1, BAD_CAST "UserEntered") == 0)
 		*event = LOF_NOTIFICATION_EVENT_USERENTER;
+	else if(xmlStrcmp(event1, BAD_CAST "UserFailed") == 0)
+			*event = LOF_NOTIFICATION_EVENT_USERFAILED;
 	else
 		*event = LOF_NOTIFICATION_EVENT_UNKNOWN;
+	node = node->next;
+	}
 	xmlFree(event1);
 	xmlFreeDoc(doc);
 }
@@ -698,20 +704,21 @@ void LOF_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF
 	memset(sequence , 0 , sizeof(sequence));
 	memset(sendtime , 0 , sizeof(sendtime));
 	memset(from , 0 , sizeof(from));
+	memset(rep, 0, sizeof(rep));
 	LOF_SIP_get_attr(sipmsg , "F" , from);
 	LOF_SIP_get_attr(sipmsg , "L" , len);
 	LOF_SIP_get_attr(sipmsg , "I" , callid);
 	LOF_SIP_get_attr(sipmsg , "Q" , sequence);
 	LOF_SIP_get_attr(sipmsg , "D" , sendtime);
 
-	*msg = LOF_DATA_FetionMessage_new();
+	/**msg = LOF_DATA_FetionMessage_new();
 
 	(*msg)->sysback = 0;
 	if(strstr(sipmsg, "SIP-C/3.0") &&
 		!strstr(sipmsg, "SIP-C/4.0"))
 		(*msg)->sysback = 1;
 
-	/* group message */
+
 	if(strstr(from , "PG") != NULL){
 	    LOF_DATA_FetionMessage_set_pguri(*msg , from);
 	    memset(memsipuri , 0 , sizeof(memsipuri));
@@ -734,8 +741,8 @@ void LOF_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF
 	}else{
 		LOF_DATA_FetionMessage_set_message(*msg , pos);
 	}
+*/
 
-	memset(rep, 0, sizeof(rep));
 	if(strstr(from , "PG") == NULL)
 	    sprintf(rep ,"SIP-C/4.0 200 OK\r\nF: %s\r\nI: %s\r\nQ: %s\r\n\r\n"
 				    , from , callid , sequence );
@@ -1076,7 +1083,7 @@ int LOF_SIP_parse_sipc(const char *sipmsg , int *callid , char **xml)
 	
 	LOF_SIP_get_attr(sipmsg , "I" , callid_str);
 	*callid = atoi(callid_str);
-	
+/*
 	pos = strstr(sipmsg , "\r\n\r\n");
 
 	if(pos)
@@ -1089,7 +1096,7 @@ int LOF_SIP_parse_sipc(const char *sipmsg , int *callid , char **xml)
 	*xml = (char*)malloc(strlen(pos) + 1);
 	memset(*xml , 0 , strlen(pos) + 1);
 	strcpy(*xml , pos);
-
+*/
 	return atoi(code);
 
 }

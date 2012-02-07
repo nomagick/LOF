@@ -111,7 +111,17 @@ LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_list_find_by_userid(LOF_DATA_Bu
 	}
 	return NULL;
 }
-
+LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_list_find_by_sid(LOF_DATA_BuddyContactType* contactlist , const char* sid)
+{
+	LOF_DATA_BuddyContactType* cl_cur;
+//	LOF_debug_info("Doing Find By Sid, which is %s.",sid);
+	foreach_contactlist(contactlist , cl_cur){
+		if(strcmp(cl_cur->sId , sid) == 0)
+			return cl_cur;
+	}
+	LOF_debug_error("Contact Not Found.");
+	return NULL;
+}
 LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_list_find_by_sipuri(LOF_DATA_BuddyContactType* contactlist , const char* sipuri)
 {
 	LOF_DATA_BuddyContactType *cl_cur;

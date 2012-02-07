@@ -170,14 +170,15 @@ int fx_login(const char *mobileno, const char *password)
 		LOF_TOOL_FxListType* ConversationListPtr;
 		LOF_TOOL_FxListType* ConversationListTempPtr;
 		LOF_SIP_FetionSipType *conversationSip;
+		LOF_TOOL_FxListType* Command_List=NULL;
 		LOF_USER_ConversationType *ConversationPtr;
 		LOF_EVENT_IncomingType Incoming;
 		LOF_DATA_BuddyContactType *ContactPtr;
 		char*	sipuri;
+		int backcallid;
 		int type;
 		int event;
 		char* xml;
-		msg=LOF_DATA_FetionMessage_new();
 		ConversationList= LOF_TOOL_FxList_new(LOF_USER_Conversation_new(user,NULL, user->sip));
 
 
@@ -185,23 +186,26 @@ int fx_login(const char *mobileno, const char *password)
 	tempmsg=NULL;
 	totalmsg=NULL;
 	for (temp=0;temp<=3000;temp++){
-		LOF_TOOL_AutoSleep(the_watch,3000000);
-		LOF_TOOL_StopWatch_start(the_watch);
 		ConversationListPtr = ConversationList;
 		for(;;)
 		{
-			curmsg=LOF_SIP_FetionSip_listen((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , &ttemp);
+
+			if (((LOF_USER_ConversationType*)(ConversationListPtr->data))->ready >= 0){
+			curmsg=LOF_SIP_FetionSip_listen((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , &ttemp);}
+			else {
+				curmsg=NULL;
+			}
 			if(ttemp==2){
 				ttemp=0;
 				LOF_SIP_FetionSip_free((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) );
 				if(ConversationListPtr->next==ConversationListPtr) {
 					ConversationListTempPtr=ConversationListPtr->pre;
-					LOF_TOOL_FxList_remove(ConversationListPtr);
+					LOF_TOOL_FxList_del(&ConversationListPtr);
 					ConversationListPtr=ConversationListTempPtr;
 					break;
 				}else{
 					ConversationListTempPtr=ConversationListPtr->next;
-					LOF_TOOL_FxList_remove(ConversationListPtr);
+					LOF_TOOL_FxList_del(&ConversationListPtr);
 					ConversationListPtr=ConversationListTempPtr;
 					continue;
 				}
@@ -211,7 +215,7 @@ int fx_login(const char *mobileno, const char *password)
 			else printf("NO MSG\n");
 
 		for(;;){
-			if (curmsg == NULL) {break;}
+			if (totalmsg == NULL) {break;}
 			tempmsg=totalmsg;
 			//printf("\n\n%s\n\n",tempmsg->message);
 			switch (LOF_SIP_get_type(tempmsg->message)){
@@ -219,7 +223,7 @@ int fx_login(const char *mobileno, const char *password)
 				printf ("\nGOT A MESSAGE !!\n%s\n\n",tempmsg->message);
 				LOF_SIP_parse_message((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , tempmsg->message ,&msg);
 				if ((LOF_DATA_BuddyContactType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentContact) == NULL) break;else{
-					LOF_USER_Conversation_send_sms((LOF_USER_ConversationType*)(ConversationListPtr->data) , tempmsg->message);
+					LOF_TOOL_Command_arrange(user,&Command_List,"MSG",(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentContact)->sId,tempmsg->message);
 
 				}
 			break;
@@ -247,18 +251,24 @@ int fx_login(const char *mobileno, const char *password)
 						LOF_SIP_FetionSip_free((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) );
 										if(ConversationListPtr->next==ConversationListPtr) {
 											ConversationListTempPtr=ConversationListPtr->pre;
-											LOF_TOOL_FxList_remove(ConversationListPtr);
+											LOF_TOOL_FxList_del(&ConversationListPtr);
 											ConversationListPtr=ConversationListTempPtr;
+											continue;
 										}else{
 											ConversationListTempPtr=ConversationListPtr->next;
-											LOF_TOOL_FxList_remove(ConversationListPtr);
+											LOF_TOOL_FxList_del(&ConversationListPtr);
 											ConversationListPtr=ConversationListTempPtr;
+											continue;
 										}
 									break;
 					}else 	if(event == LOF_NOTIFICATION_EVENT_USERENTER) {
 						//Here Should Enable Conversation Sending
+						LOF_debug_info("Detected User Enter");
 						((LOF_USER_ConversationType*)(ConversationListPtr->data))->ready = 1;
 						break;
+					}else if (event == LOF_NOTIFICATION_EVENT_USERFAILED){
+						LOF_debug_info("Detected User Failure");
+						((LOF_USER_ConversationType*)(ConversationListPtr->data))->ready = -1;
 					}
 					break;
 				case LOF_NOTIFICATION_TYPE_CONTACT:
@@ -294,6 +304,8 @@ int fx_login(const char *mobileno, const char *password)
 				break;
 			case LOF_SIP_SIPC_4_0:
 				printf ("\nGOT A SIPC40 !!\n%s\n\n",tempmsg->message);
+				LOF_TOOL_Command_ack_sipc40 (Command_List, tempmsg->message);
+
 				break;
 			case LOF_SIP_INCOMING:
 				printf ("\nGOT A INCOMING !!\n%s\n\n",tempmsg->message);
@@ -309,26 +321,35 @@ int fx_login(const char *mobileno, const char *password)
 			break;
 			}
 			if(tempmsg->next==NULL) {
-				free(tempmsg->message);
+				//free(tempmsg->message);
 				free(tempmsg);
 				totalmsg=NULL;
 				break;
 			}
 			totalmsg = tempmsg->next;
 
-			free(tempmsg->message);
+		//	free(tempmsg->message);
 			free(tempmsg);
 
 
 			}
-		printf("Process OVER,this is %d . \n\n",temp);
+	//	printf("Process OVER,this is %d . \n\n",temp);
 
 		if (ConversationListPtr->next == ConversationListPtr) break;
 		ConversationListPtr = ConversationListPtr->next;
 		}
-		if (temp%7 == 0) LOF_DATA_LocalUser_keep_alive(user);
 
 
+	//	printf("Entering\n");
+		if (LOF_TOOL_Command_main(&Command_List,ConversationList)== 1) sleep(3);else usleep(300000);
+
+		if(temp == 2) {
+			//LOF_TOOL_Command_arrange(user,&Command_List,"MSG","855272648","开始吧~");
+
+		//	LOF_TOOL_Command_arrange(user,&Command_List,"MSG","932446575","开始吧~");
+		}
+
+		LOF_TOOL_AutoKeepAlive(user,the_watch,25);
 
 	}
 
