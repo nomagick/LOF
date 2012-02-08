@@ -223,7 +223,7 @@ int LOF_DATA_LocalUser_keep_alive(LOF_DATA_LocalUserType* user)
 	int ret;
 	char *res = NULL , *body = NULL;
 	LOF_SIP_FetionSip_set_type(sip , LOF_SIP_REGISTER);
-	LOF_debug_info("send a keep alive request");
+	//LOF_debug_info("sent a keep alive request");
 	eheader = LOF_SIP_SipHeader_event_new(LOF_SIP_EVENT_KEEPALIVE);
 	LOF_SIP_FetionSip_add_header(sip , eheader);
 	body = LOF_SIP_generate_keep_alive_body();

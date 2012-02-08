@@ -21,6 +21,7 @@ void LOF_TOOL_StopWatch_stop(LOF_TOOL_StopWatchType* the_watch){
 	return;
 }
 int LOF_TOOL_StopWatch_read(LOF_TOOL_StopWatchType* the_watch){
+	if (the_watch->end == (time_t)0) return ((int)((time(NULL)-the_watch->begin)));else
 	return (int)(the_watch->end - the_watch->begin);
 }
 void LOF_TOOL_AutoKeepAlive(LOF_DATA_LocalUserType* user,LOF_TOOL_StopWatchType* the_watch,int waitsec){
@@ -49,6 +50,8 @@ LOF_TOOL_CommandType* LOF_TOOL_Command_new(LOF_TOOL_Command_InstructionType comm
 	The_Command->Retry = 0;
 	The_Command->Callid = 0;
 	The_Command->Instruction = command;
+	The_Command->Timer = LOF_TOOL_StopWatch_new();
+	LOF_TOOL_StopWatch_start(The_Command->Timer);
 	The_Command->Pram1 = (char*)malloc(strlen(pram1)+2);
 	memset(The_Command->Pram1,0,sizeof(The_Command->Pram1));
 	strcpy(The_Command->Pram1,pram1);
@@ -63,6 +66,7 @@ LOF_TOOL_CommandType* LOF_TOOL_Command_new(LOF_TOOL_Command_InstructionType comm
 }
 void LOF_TOOL_Command_destroy(LOF_TOOL_CommandType* The_Command){
 	if (The_Command == NULL) return;
+	free(The_Command->Timer);
 	free(The_Command->Pram1);
 	if (The_Command->Pram2 != NULL) free(The_Command->Pram2);
 	return;
@@ -95,11 +99,13 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 							if (theconversation->ready!=1 )
 							{
 							The_Command->Status = LOF_COMMAND_STATUS_ON_HOLD;
+							LOF_TOOL_StopWatch_start(The_Command->Timer);
 							return 0;
 							}
 							else {
 								The_Command->Progress = 4;
 								The_Command->Status = LOF_COMMAND_STATUS_ON_HOLD;
+								LOF_TOOL_StopWatch_start(The_Command->Timer);
 							}
 						}
 
@@ -219,8 +225,10 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 					free(The_Command->BackSipMsg);
 					The_Command->BackSipMsg = NULL;
 					The_Command->Progress = 4;
-					if ((((LOF_USER_ConversationType*)(theconversation))->ready != 1))
-					return 4;
+					if ((((LOF_USER_ConversationType*)(theconversation))->ready != 1)){
+							return 4;
+					}
+
 				}else{
 					free(The_Command->BackSipMsg);
 					The_Command->BackSipMsg = NULL;
@@ -240,9 +248,10 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 			if (((LOF_USER_ConversationType*)(theconversation))->ready == 1){
 				LOF_USER_Conversation_send_sms(((LOF_USER_ConversationType*)(theconversation)) , The_Command->Pram2);
 				The_Command->Callid = ((((LOF_USER_ConversationType*)(theconversation))->currentSip->callid));
-									The_Command->BackSipMsg = NULL;
-									The_Command->Progress = 5;
-									return 5;
+				The_Command->BackSipMsg = NULL;
+				The_Command->Progress = 5;
+				LOF_TOOL_StopWatch_start(The_Command->Timer);
+				return 5;
 			}
 		}
 
@@ -276,7 +285,7 @@ int LOF_TOOL_Command_ack_sipc40 (LOF_TOOL_FxListType* Command_List, char* sipc40
 	for (;;){
 		if (((LOF_TOOL_CommandType*)(Command_List->data))->Callid == callid){
 			((LOF_TOOL_CommandType*)(Command_List->data))->BackSipMsg = sipc40msg;
-			LOF_debug_info("Found Target Reply Of Command [%d] .",((LOF_TOOL_CommandType*)(Command_List->data))->CommandId);
+	//		LOF_debug_info("Found Target Reply Of Command [%d] .",((LOF_TOOL_CommandType*)(Command_List->data))->CommandId);
 			return 1;
 		}
 		if (Command_List->next == Command_List) break;
@@ -328,12 +337,18 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 	if (*Command_List == NULL) return 1;
 	LOF_TOOL_FxListType* listptr=*Command_List;
 	LOF_TOOL_FxListType* tempptr = NULL;
+	int execcount=0;
 	for (;;){
-		if (((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_FAIL || ((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_SUCCESS){
+		if (LOF_TOOL_StopWatch_read(((LOF_TOOL_CommandType*)(listptr->data))->Timer) > LOF_COMMAND_MAX_TIME ){
+			((LOF_TOOL_CommandType*)(listptr->data))->Status = LOF_COMMAND_STATUS_FAIL;
+			LOF_debug_info("Command [%d] waited for too long, assume it to be a Failure.",((LOF_TOOL_CommandType*)(listptr->data))->CommandId);
+		}
+		if (((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_FAIL || ((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_SUCCESS ){
 			if (((LOF_TOOL_CommandType*)(listptr->data))->Retry == 0 && ((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_FAIL  ){
 				((LOF_TOOL_CommandType*)(listptr->data))->Retry = 1;
 				((LOF_TOOL_CommandType*)(listptr->data))->Status = LOF_COMMAND_STATUS_NOT_HANDLED;
 				((LOF_TOOL_CommandType*)(listptr->data))->Progress = 0;
+				LOF_TOOL_StopWatch_start(((LOF_TOOL_CommandType*)(listptr->data))->Timer);
 				LOF_debug_info("Arranging Failed Command [%d] To Retry.",((LOF_TOOL_CommandType*)(listptr->data))->CommandId);
 			}else {
 				if (((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_FAIL){
@@ -348,7 +363,7 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 						LOF_TOOL_Command_destroy((LOF_TOOL_CommandType*)(listptr->data));
 						LOF_TOOL_FxList_del(&listptr);
 						listptr = tempptr;
-						LOF_debug_info("Destroyed Top Of List, Reset Pointer . Command Execute Loop Over.");
+//						LOF_debug_info("Destroyed Top Of List, Reset Pointer . Command Execute Loop Over.");
 						continue;
 
 								}
@@ -357,13 +372,13 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 					*Command_List = NULL;
 					LOF_TOOL_Command_destroy((LOF_TOOL_CommandType*)(listptr->data));
 					LOF_TOOL_FxList_del(&listptr);
-					LOF_debug_info("Destroyed Only Item Of List, Command Execute Loop Over, List Is Now Empty. ");
+				LOF_debug_info("Destroyed Only Item Of List, Command Execute Loop Over, List Is Now Empty. ");
 					return 1;
 				}
 				if (((listptr)->next == (listptr)) && ((listptr)->pre != (listptr))){
 					LOF_TOOL_Command_destroy(((LOF_TOOL_CommandType*)(listptr->data)));
 					LOF_TOOL_FxList_del(&listptr);
-					LOF_debug_info("Destroyed Bottom Of List, Command Execute Loop Over.");
+//					LOF_debug_info("Destroyed Bottom Of List, Command Execute Loop Over.");
 					return 0;
 
 				}
@@ -371,11 +386,17 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 				tempptr=listptr->next;
 				LOF_TOOL_FxList_del(&listptr);
 				listptr=tempptr;
-				LOF_debug_info("Destroyed Normal Item Of List, Continuing.");
+//				LOF_debug_info("Destroyed Normal Item Of List, Continuing.");
 				continue;
 			}
 		}else{
-
+				if (execcount >= 10) {
+					LOF_TOOL_StopWatch_start(((LOF_TOOL_CommandType*)(listptr->data))->Timer);
+					if (listptr->next != listptr){
+						listptr = listptr->next;
+						}else break;
+						continue;
+					}
 
 			if (((LOF_TOOL_CommandType*)(listptr->data))->Instruction == LOF_COMMAND_SEND_MSG ){
 				if (LOF_TOOL_Command_exec_send_msg(((LOF_TOOL_CommandType*)(listptr->data)),ConversationList)==6) continue;
@@ -385,14 +406,49 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 
 
 
-
+			execcount++;
 		}
 		if (listptr->next != listptr){
 			listptr = listptr->next;
 		}else break;
 
 	}
-	LOF_debug_info("Executed Bottom Of List, Which Is NO. [%d] , Command Execute Loop Over.",((LOF_TOOL_CommandType*)(listptr->data))->CommandId);
+//	LOF_debug_info("Executed Bottom Of List, Which Is NO. [%d] , Command Execute Loop Over.",((LOF_TOOL_CommandType*)(listptr->data))->CommandId);
 	return 0;
 }
+
+int LOF_CallBack_Message (LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List ,char* sipmsg){
+
+	char from[64];
+	memset(from , 0 , sizeof(from));
+	LOF_SIP_get_attr(sipmsg , "F" , from);
+	LOF_TOOL_Command_arrange(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentUser,Command_List,"MSG",from,sipmsg);
+	free(sipmsg);
+
+
+
+return 0;
+}
+int LOF_CallBack_Invitation(LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List ,char* sipmsg){
+	LOF_SIP_FetionSipType* conversationSip;
+	char* sipuri;
+
+	LOF_SIP_parse_invitation((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , NULL , sipmsg
+		, &conversationSip , &sipuri);
+	LOF_TOOL_FxList_append(ConversationListPtr,LOF_TOOL_FxList_new( LOF_USER_Conversation_new(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentUser,
+		 sipuri , conversationSip)));
+	free(sipmsg);
+
+return 0;
+}
+
+int LOF_CallBack_Presence(LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List ,char* sipmsg){
+	LOF_DATA_BuddyContactType* ContactPtr;
+	ContactPtr=LOF_SIP_parse_presence_body((strstr(sipmsg,"\r\n\r\n")) , ((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentUser);
+	LOF_DATA_BuddyContact_list_free(ContactPtr);
+	free(sipmsg);
+return 0;
+}
+
+
 

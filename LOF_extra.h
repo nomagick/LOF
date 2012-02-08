@@ -1,6 +1,6 @@
 #ifndef LOF_EXTRA_H
 #define LOF_EXTRA_H
-#define LOF_TOOL_SLEEP_TARGET_SECOND 2.0
+#define LOF_COMMAND_MAX_TIME 30
 
 int LOF_GLOBAL_CommandId = 1;
 
@@ -33,6 +33,7 @@ typedef struct {
 	int Progress;
 	int Retry;
 	int Callid;
+	LOF_TOOL_StopWatchType* Timer;
 	char* Pram1;
 	char* Pram2;
 	char* BackSipMsg;
@@ -43,5 +44,9 @@ extern int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxL
 extern int LOF_TOOL_Command_ack_sipc40 (LOF_TOOL_FxListType* Command_List, char* sipc40msg);
 extern int LOF_TOOL_Command_arrange(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** Command_List,const char* command,const char* pram1,const char* pram2);
 extern void LOF_TOOL_Command_destroy(LOF_TOOL_CommandType* The_Command);
+extern int LOF_CallBack_Message (LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List , char* sipmsg);
+extern int LOF_CallBack_Invitation(LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List ,char* sipmsg);
+extern int LOF_CallBack_Presence(LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List , char* sipmsg);
+
 
 #endif

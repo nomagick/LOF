@@ -221,11 +221,10 @@ int fx_login(const char *mobileno, const char *password)
 			switch (LOF_SIP_get_type(tempmsg->message)){
 			case LOF_SIP_MESSAGE:
 				printf ("\nGOT A MESSAGE !!\n%s\n\n",tempmsg->message);
-				LOF_SIP_parse_message((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , tempmsg->message ,&msg);
-				if ((LOF_DATA_BuddyContactType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentContact) == NULL) break;else{
-					LOF_TOOL_Command_arrange(user,&Command_List,"MSG",(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentContact)->sId,tempmsg->message);
-
-				}
+				/* say ack to server */
+				LOF_SIP_parse_message((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , tempmsg->message ,NULL);
+				/* do whatever you want */
+				LOF_CallBack_Message(ConversationListPtr,&Command_List,tempmsg->message);
 			break;
 			case LOF_SIP_INVITATION:
 				printf ("\nGOT A INVITATION !!\n%s\n\n",tempmsg->message);
