@@ -99,13 +99,13 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 							if (theconversation->ready!=1 )
 							{
 							The_Command->Status = LOF_COMMAND_STATUS_ON_HOLD;
-							LOF_TOOL_StopWatch_start(The_Command->Timer);
+
 							return 0;
 							}
 							else {
 								The_Command->Progress = 4;
 								The_Command->Status = LOF_COMMAND_STATUS_ON_HOLD;
-								LOF_TOOL_StopWatch_start(The_Command->Timer);
+
 							}
 						}
 

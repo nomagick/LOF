@@ -215,6 +215,7 @@ int LOF_TAKEOVER(){
 		}
 
 		LOF_TOOL_AutoKeepAlive(user,the_watch,25);
+		LOF_debug_info("Loop Finish. All Good.");
 
 	}
 
