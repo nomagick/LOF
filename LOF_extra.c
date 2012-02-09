@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
+int LOF_GLOBAL_CommandId = 1;
 LOF_TOOL_StopWatchType* LOF_TOOL_StopWatch_new(){
 	LOF_TOOL_StopWatchType* the_watch = (LOF_TOOL_StopWatchType*)malloc(sizeof(LOF_TOOL_StopWatchType));
 	the_watch->begin = (time_t)0;
@@ -390,7 +390,7 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 				continue;
 			}
 		}else{
-				if (execcount >= 10) {
+				if (execcount >= LOF_MAX_CONCURRENT) {
 					LOF_TOOL_StopWatch_start(((LOF_TOOL_CommandType*)(listptr->data))->Timer);
 					if (listptr->next != listptr){
 						listptr = listptr->next;

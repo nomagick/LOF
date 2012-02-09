@@ -52,6 +52,8 @@ LOF_USER_ConversationType* LOF_USER_Conversation_new(LOF_DATA_LocalUserType* use
 		free(conversation);
 		return NULL;
 	}
+	conversation->timer = LOF_TOOL_StopWatch_new();
+	LOF_TOOL_StopWatch_start(conversation->timer);
 	conversation->currentSip = sip;
 	conversation->ready = (sip == NULL )? -1 : 0 ;
 	return conversation;

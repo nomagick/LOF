@@ -36,9 +36,16 @@
 #define LOF_RELATION_STATUS_UNAUTHENTICATED 0
 
 #define LOF_SERVICE_DOWN_MESSAGE "您的手机已停机，目前无法使用此功能，请缴费后重试。"
+
+
+typedef struct {clock_t begin, end;}LOF_TOOL_StopWatchType;
+
+
 /**
  * some other buddylists
  */
+
+
 typedef enum {
 	LOF_BUDDY_LIST_NOT_GROUPED = 0 ,
 	LOF_BUDDY_LIST_STRANGER =   -1 ,
@@ -372,6 +379,7 @@ typedef struct {
 	LOF_SIP_FetionSipType  *currentSip;				 /* sip struct used to send message
 										  * NULL if did not start a chat channel for this conversation */
 	int ready;
+	LOF_TOOL_StopWatchType* timer;
 } LOF_USER_ConversationType;
 
 

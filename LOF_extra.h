@@ -1,10 +1,10 @@
 #ifndef LOF_EXTRA_H
 #define LOF_EXTRA_H
 #define LOF_COMMAND_MAX_TIME 30
+#define LOF_MAX_CONCURRENT 3
 
-int LOF_GLOBAL_CommandId = 1;
 
-typedef struct {clock_t begin, end;}LOF_TOOL_StopWatchType;
+
 extern LOF_TOOL_StopWatchType* LOF_TOOL_StopWatch_new();
 extern void LOF_TOOL_StopWatch_start(LOF_TOOL_StopWatchType* the_watch);
 extern void LOF_TOOL_StopWatch_stop(LOF_TOOL_StopWatchType* the_watch);

@@ -58,21 +58,22 @@ int LOF_TAKEOVER(){
 			else {
 				curmsg=NULL;
 			}
-			if(listener_error==2){
+			if(listener_error==2 || LOF_TOOL_StopWatch_read(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer) >= (LOF_COMMAND_MAX_TIME + 6)){
 				listener_error=0;
 				LOF_SIP_FetionSip_free((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) );
 				if(ConversationListPtr->next==ConversationListPtr) {
 					ConversationListTempPtr=ConversationListPtr->pre;
 					LOF_TOOL_FxList_del(&ConversationListPtr);
 					ConversationListPtr=ConversationListTempPtr;
-					break;
+					curmsg = NULL;
 				}else{
-					ConversationListTempPtr=ConversationListPtr->next;
+					ConversationListTempPtr=ConversationListPtr->pre;
 					LOF_TOOL_FxList_del(&ConversationListPtr);
 					ConversationListPtr=ConversationListTempPtr;
-					continue;
+					curmsg = NULL;
 				}
 			}
+			if (curmsg != NULL) LOF_TOOL_StopWatch_start(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer);
 			if (totalmsg == NULL && curmsg!=NULL) totalmsg=curmsg;
 			else if(curmsg!=NULL)LOF_DATA_SipMsg_append(totalmsg,curmsg);
 	//	else printf("NO MSG\n");
@@ -207,11 +208,22 @@ int LOF_TAKEOVER(){
 		if (LOF_TOOL_Command_main(&Command_List, ConversationList)== 1) sleep(3);else usleep(300000);
 		if(loop_counter == 5) {
 			LOF_DATA_BuddyContactType *cl_cur;
-				foreach_contactlist(user->contactList , cl_cur){
+				foreach_contactlist(user->contactList , cl_cur)
+			{
 					if (cl_cur->status == LOF_STATUS_HIDDEN)
 						LOF_TOOL_Command_arrange(user,&Command_List,"MSG",cl_cur->sipuri,message);
 
-				}
+				}/*
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+
+*/
 		}
 
 		LOF_TOOL_AutoKeepAlive(user,the_watch,25);

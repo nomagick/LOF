@@ -71,6 +71,7 @@ extern "C" {
 #include "LOF_share.h"
 #include "LOF_directsms.h"
 #include "LOF_group.h"
+#include "LOF_extra.h"
 
 #ifdef __cplusplus
 }
