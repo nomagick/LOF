@@ -106,7 +106,7 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 
 							}
 						}
-		if (The_Command->Progress != 0 && The_Command->Status != LOF_COMMAND_STATUS_FAIL && theconversation == NULL){
+		if (The_Command->Progress != 0 && theconversation == NULL){
 		The_Command->Status = LOF_COMMAND_STATUS_FAIL;
 		The_Command->Progress = -1;
 		return -1;
