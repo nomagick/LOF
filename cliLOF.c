@@ -8,12 +8,15 @@
 
 
 #define BUFLEN 1024
-	LOF_DATA_LocalUserType *user;
+	LOF_DATA_LocalUserType *LOF_GLOBAL_User;
 	char mobileno[BUFLEN];
 	char password[BUFLEN];
 	char receiveno[BUFLEN];
 	char message[BUFLEN];
 
+
+	LOF_TOOL_FxListType* LOF_GLOBAL_ConversationList = NULL;
+	LOF_TOOL_FxListType* LOF_GLOBAL_Command_List=NULL;
 int LOF_TAKEOVER(){
 
 
@@ -23,13 +26,13 @@ int LOF_TAKEOVER(){
 		/* Stop watch used to decide whether a KeepAlive request should be sent via the root channel. */
 		LOF_TOOL_StopWatchType* the_watch = LOF_TOOL_StopWatch_new();
 		/* Root conversation list , keeping every socket channel .the first item is the root channel, which should never be destroyed.*/
-		LOF_TOOL_FxListType* ConversationList = LOF_TOOL_FxList_new(LOF_USER_Conversation_new(user,NULL, user->sip));
+		 LOF_GLOBAL_ConversationList = LOF_TOOL_FxList_new(LOF_USER_Conversation_new(LOF_GLOBAL_User,NULL, LOF_GLOBAL_User->sip));
 		LOF_TOOL_FxListType* ConversationListPtr;
 		LOF_TOOL_FxListType* ConversationListTempPtr;
 		//LOF_USER_ConversationType *ConversationPtr;
 
 		/* The Command List used to arrange sending operations.*/
-		LOF_TOOL_FxListType* Command_List=NULL;
+
 		/* Die flag */
 		int WANADIE = 0;
 		/* All Kinds Of temporary vars.*/
@@ -42,11 +45,12 @@ int LOF_TAKEOVER(){
 		char* xml;
 		int loop_counter=0;
 		int listener_error;
+		int LongSleepFlag = 1;
 
 
 	/* The Main Loop*/
 	for (loop_counter=0;loop_counter<=3000 && WANADIE == 0;loop_counter++){
-		ConversationListPtr = ConversationList;
+		ConversationListPtr = LOF_GLOBAL_ConversationList;
 
 		for(;;)
 		{
@@ -58,8 +62,10 @@ int LOF_TAKEOVER(){
 			else {
 				curmsg=NULL;
 			}
-			if(listener_error==2 || LOF_TOOL_StopWatch_read(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer) >= (LOF_COMMAND_MAX_TIME + 6)){
+			if((listener_error==2 || LOF_TOOL_StopWatch_read(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer) >= (LOF_COMMAND_MAX_TIME + 15)) && (((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentContact != NULL)){
 				listener_error=0;
+				LOF_debug_info("Closing channel for buddy %s",((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentContact->sipuri);
+				free(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer);
 				LOF_SIP_FetionSip_free((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) );
 				if(ConversationListPtr->next==ConversationListPtr) {
 					ConversationListTempPtr=ConversationListPtr->pre;
@@ -74,6 +80,7 @@ int LOF_TAKEOVER(){
 				}
 			}
 			if (curmsg != NULL) LOF_TOOL_StopWatch_start(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer);
+			if (((LOF_USER_ConversationType*)(ConversationListPtr->data))->ready == 1) LongSleepFlag = 0;
 			if (totalmsg == NULL && curmsg!=NULL) totalmsg=curmsg;
 			else if(curmsg!=NULL)LOF_DATA_SipMsg_append(totalmsg,curmsg);
 	//	else printf("NO MSG\n");
@@ -88,7 +95,7 @@ int LOF_TAKEOVER(){
 				/* say ack to server */
 				LOF_SIP_parse_message((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , tempmsg->message ,NULL);
 				/* do whatever you want */
-				LOF_CallBack_Message(ConversationListPtr,&Command_List,tempmsg->message);
+				LOF_CallBack_Message(ConversationListPtr,&LOF_GLOBAL_Command_List,tempmsg->message);
 				break;
 			case LOF_SIP_INVITATION:
 //			printf ("\nGOT A INVITATION !!\n%s\n\n",tempmsg->message);
@@ -97,8 +104,8 @@ int LOF_TAKEOVER(){
 					LOF_debug_error("Received Invitation from non root channel, which should not happen.");
 					break;
 				}
-				LOF_CallBack_Invitation(ConversationListPtr,&Command_List,tempmsg->message);
-
+				LOF_CallBack_Invitation(ConversationListPtr,&LOF_GLOBAL_Command_List,tempmsg->message);
+				LongSleepFlag = 0;
 				break;
 			case LOF_SIP_NOTIFICATION:
 //			printf ("\nGOT A NOLIFICATION !!\n%s\n\n",tempmsg->message);
@@ -106,12 +113,13 @@ int LOF_TAKEOVER(){
 				free (xml);
 				switch(type){
 				case LOF_NOTIFICATION_TYPE_PRESENCE:
-					LOF_CallBack_Presence(ConversationListPtr,&Command_List,tempmsg->message);
+					LOF_CallBack_Presence(ConversationListPtr,&LOF_GLOBAL_Command_List,tempmsg->message);
 
 					//Here should do further process,changed contact list is not freed
 					break;
 				case LOF_NOTIFICATION_TYPE_CONVERSATION:
 					if(event == LOF_NOTIFICATION_EVENT_USERLEFT) {
+						free(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer);
 						LOF_SIP_FetionSip_free((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) );
 										if(ConversationListPtr->next==ConversationListPtr) {
 											ConversationListTempPtr=ConversationListPtr->pre;
@@ -168,7 +176,7 @@ int LOF_TAKEOVER(){
 				break;
 			case LOF_SIP_SIPC_4_0:
 //				printf ("\nGOT A SIPC40 !!\n%s\n\n",tempmsg->message);
-				LOF_TOOL_Command_ack_sipc40 (Command_List, tempmsg->message);
+				LOF_TOOL_Command_ack_sipc40 (LOF_GLOBAL_Command_List, tempmsg->message);
 
 				break;
 			case LOF_SIP_INCOMING:
@@ -203,15 +211,22 @@ int LOF_TAKEOVER(){
 		ConversationListPtr = ConversationListPtr->next;
 		}
 
+		LOF_TOOL_AutoKeepAlive(LOF_GLOBAL_User,the_watch,25);
 
-	//	printf("Entering\n");
-		if (LOF_TOOL_Command_main(&Command_List, ConversationList)== 1) sleep(3);else usleep(300000);
+		//	printf("Entering\n");
+		if (LOF_TOOL_Command_main(&LOF_GLOBAL_Command_List, LOF_GLOBAL_ConversationList) != 1) LongSleepFlag = 0;
+
+		if (LongSleepFlag == 1) sleep(3);else {
+			LongSleepFlag = 1 ;
+			usleep(300000);
+		}
+
 		if(loop_counter == 5) {
 			LOF_DATA_BuddyContactType *cl_cur;
-				foreach_contactlist(user->contactList , cl_cur)
+				foreach_contactlist(LOF_GLOBAL_User->contactList , cl_cur)
 			{
 					if (cl_cur->status == LOF_STATUS_HIDDEN)
-						LOF_TOOL_Command_arrange(user,&Command_List,"MSG",cl_cur->sipuri,message);
+						LOF_TOOL_Command_arrange(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,"MSG",cl_cur->sipuri,message);
 
 				}/*
 			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
@@ -226,8 +241,8 @@ int LOF_TAKEOVER(){
 */
 		}
 
-		LOF_TOOL_AutoKeepAlive(user,the_watch,25);
-		LOF_debug_info("Loop Finish. All Good.");
+
+	//	LOF_debug_info("Loop Finish. All Good.");
 
 	}
 
@@ -254,43 +269,43 @@ int LOF_TAKEOVER(){
 		int               ret;
 
 		/* construct a user object */
-	 	user = LOF_DATA_LocalUser_new(mobileno, password);
+		LOF_GLOBAL_User = LOF_DATA_LocalUser_new(mobileno, password);
 		/* construct a config object */
 		config = LOF_TOOL_Config_new();
 		/* attach config to user */
-		LOF_DATA_LocalUser_set_config(user, config);
+		LOF_DATA_LocalUser_set_config(LOF_GLOBAL_User, config);
 
 		/* start ssi authencation,result string needs to be freed after use */
-		res = LOF_LOGIN_ssi_auth_action(user);
+		res = LOF_LOGIN_ssi_auth_action(LOF_GLOBAL_User);
 		/* parse the ssi authencation result,if success,user's sipuri and userid
 		 * are stored in user object,orelse user->loginStatus was marked failed */
-		LOF_LOGIN_parse_ssi_auth_response(res, user);
+		LOF_LOGIN_parse_ssi_auth_response(res, LOF_GLOBAL_User);
 		free(res);
 
 		/* whether needs to input a confirm code,or login failed
 		 * for other reason like password error */
-		if(LOF_USER_AUTH_NEED_CONFIRM(user) || LOF_USER_AUTH_ERROR(user)) {
+		if(LOF_USER_AUTH_NEED_CONFIRM(LOF_GLOBAL_User) || LOF_USER_AUTH_ERROR(LOF_GLOBAL_User)) {
 			LOF_debug_error("authencation failed");
 			return 1;
 		}
 
 		/* initialize configuration for current user */
-		if(LOF_DATA_LocalUser_init_config(user) == -1) {
+		if(LOF_DATA_LocalUser_init_config(LOF_GLOBAL_User) == -1) {
 			LOF_debug_error("initialize configuration");
 			return 1;
 		}
 
-		if(LOF_DATA_LocalUser_download_configuration(user) == -1) {
+		if(LOF_DATA_LocalUser_download_configuration(LOF_GLOBAL_User) == -1) {
 			LOF_debug_error("download configuration");
 			return 1;
 		}
 
 		/* set user's login state to be hidden */
-		user -> status =  LOF_STATUS_ONLINE;
+		LOF_GLOBAL_User -> status =  LOF_STATUS_ONLINE;
 
 		/* load user information and contact list information from local host */
-		LOF_DATA_LocalUser_load(user);
-		LOF_DATA_BuddyContact_load(user, &local_group_count, &local_buddy_count);
+		LOF_DATA_LocalUser_load(LOF_GLOBAL_User);
+		LOF_DATA_BuddyContact_load(LOF_GLOBAL_User, &local_group_count, &local_buddy_count);
 
 		/* construct a tcp object and connect to the sipc proxy server */
 		tcp = LOF_CONNECTION_FetionConnection_new();
@@ -300,11 +315,11 @@ int LOF_TAKEOVER(){
 		}
 
 		/* construct a sip object with the tcp object and attach it to user object */
-		sip = LOF_SIP_FetionSip_new(tcp, user->sId);
-		LOF_DATA_LocalUser_set_sip(user, sip);
+		sip = LOF_SIP_FetionSip_new(tcp, LOF_GLOBAL_User->sId);
+		LOF_DATA_LocalUser_set_sip(LOF_GLOBAL_User, sip);
 
 		/* register to sipc server */
-		if(!(res = LOF_LOGIN_sipc_reg_action(user))) {
+		if(!(res = LOF_LOGIN_sipc_reg_action(LOF_GLOBAL_User))) {
 			LOF_debug_error("register to sipc server");
 			return 1;
 		}
@@ -313,17 +328,17 @@ int LOF_TAKEOVER(){
 		free(res);
 		aeskey = LOF_LOGIN_generate_aes_key();
 
-		response = LOF_LOGIN_generate_response(nonce, user->userId, user->password, key, aeskey);
+		response = LOF_LOGIN_generate_response(nonce, LOF_GLOBAL_User->userId, LOF_GLOBAL_User->password, key, aeskey);
 		free(nonce);
 		free(key);
 		free(aeskey);
 
 		/* sipc authencation,you can printf res to see what you received */
-		if(!(res = LOF_LOGIN_sipc_aut_action(user, response))) {
+		if(!(res = LOF_LOGIN_sipc_aut_action(LOF_GLOBAL_User, response))) {
 			LOF_debug_error("sipc authencation");
 			return 1;
 		}
-		if(LOF_LOGIN_parse_sipc_auth_response(res, user, &group_count, &buddy_count) == -1) {
+		if(LOF_LOGIN_parse_sipc_auth_response(res, LOF_GLOBAL_User, &group_count, &buddy_count) == -1) {
 			LOF_debug_error("authencation failed");
 			return 1;
 		}
@@ -331,15 +346,15 @@ int LOF_TAKEOVER(){
 		free(res);
 		free(response);
 
-		if(LOF_USER_AUTH_ERROR(user) || LOF_USER_AUTH_NEED_CONFIRM(user)) {
+		if(LOF_USER_AUTH_ERROR(LOF_GLOBAL_User) || LOF_USER_AUTH_NEED_CONFIRM(LOF_GLOBAL_User)) {
 			LOF_debug_error("login failed");
 			return 1;
 		}
 
 		/* save the user information and contact list information back to the local database */
-		LOF_DATA_LocalUser_save(user);
-		LOF_DATA_BuddyContact_save(user);
-		LOF_DATA_BuddyContact_subscribe_only(user);
+		LOF_DATA_LocalUser_save(LOF_GLOBAL_User);
+		LOF_DATA_BuddyContact_save(LOF_GLOBAL_User);
+		LOF_DATA_BuddyContact_subscribe_only(LOF_GLOBAL_User);
 
 		LOF_debug_info("Login is done. start" );
 		return 0;
@@ -395,7 +410,7 @@ int LOF_TAKEOVER(){
 
 	LOF_TAKEOVER();
 
-	LOF_DATA_LocalUser_free(user);
+	LOF_DATA_LocalUser_free(LOF_GLOBAL_User);
 	return 0;
 
 }

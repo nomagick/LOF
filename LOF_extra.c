@@ -26,14 +26,11 @@ int LOF_TOOL_StopWatch_read(LOF_TOOL_StopWatchType* the_watch){
 }
 void LOF_TOOL_AutoKeepAlive(LOF_DATA_LocalUserType* user,LOF_TOOL_StopWatchType* the_watch,int waitsec){
 	if (the_watch == NULL){LOF_debug_error("Fatal !  No Keep Alive Clock !"); return;}
-	double  waited;
 	if (the_watch->begin == (time_t)0) {
 		LOF_TOOL_StopWatch_start(the_watch);
 		LOF_DATA_LocalUser_keep_alive(user);
 		return;}
-	LOF_TOOL_StopWatch_stop(the_watch);
-	waited = LOF_TOOL_StopWatch_read(the_watch);
-	if (waited > waitsec){
+	if (LOF_TOOL_StopWatch_read(the_watch) > waitsec){
 		LOF_TOOL_StopWatch_start(the_watch);
 		LOF_DATA_LocalUser_keep_alive(user);
 	}
@@ -61,11 +58,12 @@ LOF_TOOL_CommandType* LOF_TOOL_Command_new(LOF_TOOL_Command_InstructionType comm
 	strcpy(The_Command->Pram2,pram2);
 	}
 	The_Command->BackSipMsg = NULL;
-	LOF_debug_info("Built A New Command, Which Has Id %d.",The_Command->CommandId);
+//	LOF_debug_info("Built A New Command, Which Has Id %d.",The_Command->CommandId);
 	return The_Command;
 }
 void LOF_TOOL_Command_destroy(LOF_TOOL_CommandType* The_Command){
 	if (The_Command == NULL) return;
+	if (The_Command->BackSipMsg != NULL) free(The_Command->BackSipMsg);
 	free(The_Command->Timer);
 	free(The_Command->Pram1);
 	if (The_Command->Pram2 != NULL) free(The_Command->Pram2);
@@ -108,6 +106,11 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 
 							}
 						}
+		if (The_Command->Progress != 0 && The_Command->Status != LOF_COMMAND_STATUS_FAIL && theconversation == NULL){
+		The_Command->Status = LOF_COMMAND_STATUS_FAIL;
+		The_Command->Progress = -1;
+		return -1;
+		}
 
 
 		if (The_Command->Progress == 0 && The_Command->Status != LOF_COMMAND_STATUS_FAIL && theconversation == NULL){
@@ -136,7 +139,7 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 
 
 
-		if (The_Command->Progress == 1 && The_Command->BackSipMsg != NULL){
+		if (The_Command->Progress == 1 && The_Command->BackSipMsg != NULL && theconversation != NULL){
 			char *res , *ip , *credential , auth[256] ;
 				int port , ret;
 				LOF_CONNECTION_FetionConnectionType* conn=LOF_CONNECTION_FetionConnection_new();
@@ -157,8 +160,7 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 				LOF_SIP_get_auth_attr(auth , &ip , &port , &credential);
 				free(The_Command->BackSipMsg); The_Command->BackSipMsg = NULL;
 				ret = LOF_CONNECTION_FetionConnection_connect(conn, ip, port);
-				if(ret == -1)
-				ret = LOF_CONNECTION_FetionConnection_connect(conn, ip, 443);
+		//		if(ret == -1) ret = LOF_CONNECTION_FetionConnection_connect(conn, ip, 443);
 				if(ret == -1){
 					The_Command->Status = LOF_COMMAND_STATUS_FAIL;
 					The_Command->Progress = -1;
@@ -220,7 +222,7 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 		}
 
 
-		if (The_Command->Progress == 3 && The_Command->BackSipMsg != NULL){
+		if (The_Command->Progress == 3 && The_Command->BackSipMsg != NULL && theconversation != NULL){
 			if(LOF_SIP_get_code(The_Command->BackSipMsg) == 200)	{
 					free(The_Command->BackSipMsg);
 					The_Command->BackSipMsg = NULL;
@@ -255,15 +257,18 @@ int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_Fx
 			}
 		}
 
-		if (The_Command->Progress == 4 && (((LOF_USER_ConversationType*)(theconversation))->ready < 0)){
+		if (The_Command->Progress == 4 &&  theconversation != NULL){
+			if ((((LOF_USER_ConversationType*)(theconversation))->ready < 0)){
 			LOF_SIP_FetionSip_free((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) );
+			free(((LOF_USER_ConversationType*)(ConversationListPtr->data))->timer);
 			LOF_TOOL_FxList_del(&ConversationListPtr);
 			The_Command->Status = LOF_COMMAND_STATUS_FAIL;
 			The_Command->Progress = -1;
 			return -1;
+			}
 		}
 
-		if (The_Command->Progress == 5 && The_Command->BackSipMsg != NULL){
+		if (The_Command->Progress == 5 && The_Command->BackSipMsg != NULL ){
 			if(LOF_SIP_get_code(The_Command->BackSipMsg) == 200)
 			{
 				free(The_Command->BackSipMsg);
@@ -341,6 +346,7 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 	for (;;){
 		if (LOF_TOOL_StopWatch_read(((LOF_TOOL_CommandType*)(listptr->data))->Timer) > LOF_COMMAND_MAX_TIME ){
 			((LOF_TOOL_CommandType*)(listptr->data))->Status = LOF_COMMAND_STATUS_FAIL;
+			((LOF_TOOL_CommandType*)(listptr->data))->Progress = -1;
 			LOF_debug_info("Command [%d] waited for too long, assume it to be a Failure.",((LOF_TOOL_CommandType*)(listptr->data))->CommandId);
 		}
 		if (((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_FAIL || ((LOF_TOOL_CommandType*)(listptr->data))->Status == LOF_COMMAND_STATUS_SUCCESS ){
