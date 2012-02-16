@@ -1,6 +1,6 @@
 #include "LOF_openfetion.h"
 #include "LOF_extra.h"
-
+#include <fcntl.h>
 
 
 
@@ -17,6 +17,7 @@
 
 	LOF_TOOL_FxListType* LOF_GLOBAL_ConversationList = NULL;
 	LOF_TOOL_FxListType* LOF_GLOBAL_Command_List=NULL;
+	LOF_TOOL_FxListType* LOF_GLOBAL_MessageList=NULL;
 int LOF_TAKEOVER(){
 
 
@@ -38,15 +39,18 @@ int LOF_TAKEOVER(){
 		/* All Kinds Of temporary vars.*/
 		LOF_EVENT_IncomingType Incoming;
 		LOF_DATA_BuddyContactType *ContactPtr;
+		LOF_DATA_FetionMessageType* MessageListPtr;
+		int CommandTunnel=-1 ;
+		char CommandTunnelBuff[(int)(PIPE_BUF+2)];
 		char*	sipuri;
-		int backcallid;
+		int tmpint;
 		int type;
 		int event;
 		char* xml;
 		int loop_counter=0;
 		int listener_error;
 		int LongSleepFlag = 1;
-
+		memset(CommandTunnelBuff,0,sizeof(CommandTunnelBuff));
 
 	/* The Main Loop*/
 	for (loop_counter=0;loop_counter<=3000 && WANADIE == 0;loop_counter++){
@@ -89,11 +93,20 @@ int LOF_TAKEOVER(){
 			if (totalmsg == NULL) {break;}
 			tempmsg=totalmsg;
 			//printf("\n\n%s\n\n",tempmsg->message);
+			printf ("\nHeard:\n%s\n\n",tempmsg->message);
 			switch (LOF_SIP_get_type(tempmsg->message)){
 			case LOF_SIP_MESSAGE:
-				printf ("\nGOT A MESSAGE !!\n%s\n\n",tempmsg->message);
-				/* say ack to server */
-				LOF_SIP_parse_message((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , tempmsg->message ,NULL);
+	//			printf ("\nGOT A MESSAGE !!\n%s\n\n",tempmsg->message);
+
+			/* say ack to server */
+				LOF_SIP_parse_message((LOF_SIP_FetionSipType*)(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentSip) , tempmsg->message ,&MessageListPtr);
+				/* Add message to global message list. */
+				if (LOF_GLOBAL_MessageList == NULL){
+					LOF_GLOBAL_MessageList = LOF_TOOL_FxList_new(MessageListPtr);
+				}
+				else {
+					LOF_TOOL_FxList_append(LOF_GLOBAL_MessageList,LOF_TOOL_FxList_new(MessageListPtr));
+				}
 				/* do whatever you want */
 				LOF_CallBack_Message(ConversationListPtr,&LOF_GLOBAL_Command_List,tempmsg->message);
 				break;
@@ -213,6 +226,19 @@ int LOF_TAKEOVER(){
 
 		LOF_TOOL_AutoKeepAlive(LOF_GLOBAL_User,the_watch,25);
 
+
+		if (CommandTunnel == -1){
+
+			CommandTunnel = LOF_FIFO_open(LOF_GLOBAL_User,"CommandTunnel");
+		}
+		else {
+			tmpint=read(CommandTunnel,CommandTunnelBuff,PIPE_BUF);
+			if (tmpint > 0){
+				LOF_TOOL_Command_ParseStr(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,CommandTunnelBuff);
+				memset(CommandTunnelBuff,0,sizeof(CommandTunnelBuff));
+			}else if (tmpint < 0)close(CommandTunnel);
+//			LOF_debug_info("NO CMD FROM TUNEL");
+		}
 		//	printf("Entering\n");
 		if (LOF_TOOL_Command_main(&LOF_GLOBAL_Command_List, LOF_GLOBAL_ConversationList) != 1) LongSleepFlag = 0;
 
@@ -221,27 +247,36 @@ int LOF_TAKEOVER(){
 			usleep(300000);
 		}
 
-		if(loop_counter == 5) {
-			LOF_DATA_BuddyContactType *cl_cur;
+		if(loop_counter == 3) {
+		/*	LOF_DATA_BuddyContactType *cl_cur;
 				foreach_contactlist(LOF_GLOBAL_User->contactList , cl_cur)
 			{
 					if (cl_cur->status == LOF_STATUS_HIDDEN)
 						LOF_TOOL_Command_arrange(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,"MSG",cl_cur->sipuri,message);
 
-				}/*
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
-			LOF_TOOL_Command_arrange(user,&Command_List,"MSG","470167670",message);
+				}*/
+LOF_debug_info("NOW!!!!!!!!");
 
-*/
+		//	LOF_DATA_BuddyContact_get_contact_info_by_no(LOF_GLOBAL_User, "13716383770", LOF_MOBILE_NO);
+	//LOF_TOOL_Command_arrange(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,"SMS","13810685380",message);
+	LOF_File_prepare(LOF_GLOBAL_User,"test");
 		}
 
+		if (loop_counter > 3 && (loop_counter % 5 == 0  || LongSleepFlag == 1)){
+			char* instruction[5],pram1[32],pram2[2048];
 
+		//	char FileUrl[256];
+
+	//		snprintf((char*)FileUrl, sizeof(FileUrl), "%s/%s",LOF_GLOBAL_User->config->globalPath,"test");
+
+		/*	if (CommandTunnel != NULL){PIPE_BUF;
+				while (fscanf(CommandTunnel,"%s %s %s;",&instruction,&pram1,&pram2) != EOF){
+					LOF_debug_info("Read from file %s : %s : %s .",instruction,pram1,pram2);
+				}
+		//	LOF_debug_info("Read from file %s : %s : %s .",instruction,pram1,pram2);
+		//	fclose(thefile);
+			}*/
+		}
 	//	LOF_debug_info("Loop Finish. All Good.");
 
 	}
@@ -355,7 +390,7 @@ int LOF_TAKEOVER(){
 		LOF_DATA_LocalUser_save(LOF_GLOBAL_User);
 		LOF_DATA_BuddyContact_save(LOF_GLOBAL_User);
 		LOF_DATA_BuddyContact_subscribe_only(LOF_GLOBAL_User);
-
+		LOF_FIFO_prepare(LOF_GLOBAL_User,"CommandTunnel");
 		LOF_debug_info("Login is done. start" );
 		return 0;
 	}

@@ -38,7 +38,7 @@ void LOF_TOOL_AutoKeepAlive(LOF_DATA_LocalUserType* user,LOF_TOOL_StopWatchType*
 }
 
 LOF_TOOL_CommandType* LOF_TOOL_Command_new(LOF_TOOL_Command_InstructionType command,const char* pram1,const char* pram2){
-	if (pram1==NULL) return NULL;
+//	if (pram1==NULL) return NULL;
 	LOF_TOOL_CommandType* The_Command = (LOF_TOOL_CommandType*)malloc(sizeof(LOF_TOOL_CommandType));
 	memset(The_Command,0,sizeof(LOF_TOOL_CommandType));
 	The_Command->Status = LOF_COMMAND_STATUS_NOT_HANDLED;
@@ -65,14 +65,79 @@ void LOF_TOOL_Command_destroy(LOF_TOOL_CommandType* The_Command){
 	if (The_Command == NULL) return;
 	if (The_Command->BackSipMsg != NULL) free(The_Command->BackSipMsg);
 	free(The_Command->Timer);
-	free(The_Command->Pram1);
+	if (The_Command->Pram2 != NULL) free(The_Command->Pram1);
 	if (The_Command->Pram2 != NULL) free(The_Command->Pram2);
 	return;
 
 }
+int LOF_TOOL_Command_exec_send_sms(LOF_TOOL_CommandType* The_Command,LOF_TOOL_FxListType* ConversationList){
+	if(The_Command->Pram2 ==NULL||The_Command->Pram1 ==NULL||ConversationList == NULL) {
+				The_Command->Status = LOF_COMMAND_STATUS_FAIL;
+				The_Command->Progress = -1;
+				return -1;
+			}
+	if (The_Command->Progress == 0 && The_Command->Status == LOF_COMMAND_STATUS_NOT_HANDLED){
+
+		LOF_SIP_SipHeaderType *toheader , *eheader , *aheader;
+			char* res;
+			char* xml;
+			LOF_DATA_LocalUserType *user = ((LOF_USER_ConversationType*)(ConversationList->data))->currentUser;
+			LOF_SIP_FetionSipType* sip = user->sip;
+			char astr[256];
+			char* sipuri = The_Command->Pram1;
+
+			LOF_SIP_FetionSip_set_type(sip , LOF_SIP_MESSAGE);
+			toheader = LOF_SIP_SipHeader_new("T" , sipuri);
+			eheader  = LOF_SIP_SipHeader_event_new(LOF_SIP_EVENT_SENDCATMESSAGE);
+			LOF_SIP_FetionSip_add_header(sip , toheader);
+			if(user->verification != NULL){
+				sprintf(astr , "Verify algorithm=\"picc\",chid=\"%s\",response=\"%s\""
+						, user->verification->guid
+						, user->verification->code);
+				aheader = LOF_SIP_SipHeader_new("A" , astr);
+				LOF_SIP_FetionSip_add_header(sip , aheader);
+			}
+			LOF_SIP_FetionSip_add_header(sip , eheader);
+			res = LOF_SIP_to_string(sip , The_Command->Pram2);
+
+			LOF_CONNECTION_FetionConnection_send(sip->tcp , res , strlen(res));
+			free(res);
+			The_Command->Callid = sip->callid;
+			The_Command->Progress = 1 ;
+			The_Command->Status = LOF_COMMAND_STATUS_ON_HOLD;
+			return 1;
+	}
+
+	if (The_Command->Progress == 1 && The_Command->BackSipMsg != NULL)
+	{
+		char* xml;
+		int daycount,monthcount;
+			if(LOF_SIP_get_code(The_Command->BackSipMsg) == 280){
+				xml = strstr(The_Command->BackSipMsg , "\r\n\r\n") + 4;
+				LOF_USER_Conversation_parse_send_sms(xml , &daycount , &monthcount);
+				((LOF_USER_ConversationType*)(ConversationList->data))->currentUser->smsDayCount = daycount;
+				((LOF_USER_ConversationType*)(ConversationList->data))->currentUser->smsMonthCount = monthcount;
+				free (The_Command->BackSipMsg);
+				The_Command->BackSipMsg = NULL;
+				LOF_debug_info("Sent a message to (%s)`s mobile phone" , The_Command->Pram1);
+				The_Command->Progress = 2 ;
+				The_Command->Status = LOF_COMMAND_STATUS_SUCCESS;
+				return 2;
+			}else{
+				LOF_debug_error("Send a message to (%s)`s mobile phone failed",
+						The_Command->Pram1);
+				The_Command->Status = LOF_COMMAND_STATUS_FAIL;
+				The_Command->Progress = -1;
+				return -1;
+			}
+	}
+
+	return 0;
+}
 int LOF_TOOL_Command_exec_send_msg(LOF_TOOL_CommandType* The_Command,LOF_TOOL_FxListType* ConversationList){
 		if(The_Command->Pram2 ==NULL||ConversationList == NULL) {
 			The_Command->Status = LOF_COMMAND_STATUS_FAIL;
+			The_Command->Progress = -1;
 			return -1;
 		}
 
@@ -301,11 +366,15 @@ return 0;
 }
 
 int LOF_TOOL_Command_arrange(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** Command_List,const char* command,const char* pram1,const char* pram2){
-	if (Command_List == NULL || command == NULL || pram1 == NULL) return -1;
+	if (Command_List == NULL || command == NULL ) return -1;
 	LOF_TOOL_FxListType* commandlistptr;
 	LOF_TOOL_CommandType* commandptr;
 	LOF_DATA_BuddyContactType* contactptr;
 	if (strcmp(command,"MSG")==0){
+		if (pram1==NULL || pram2 == NULL || command == NULL) {
+					LOF_debug_error("Illegal Command, Will Not Arrange.");
+					return -1;
+				}
 		if (strlen(pram1) <= 10 ) {
 			contactptr = LOF_DATA_BuddyContact_list_find_by_sid(user->contactList,pram1);
 		}
@@ -328,8 +397,50 @@ int LOF_TOOL_Command_arrange(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** 
 			LOF_TOOL_FxList_append(*Command_List,LOF_TOOL_FxList_new(commandptr));
 		}
 		LOF_debug_info("Arranged A New MSG Command, Which is NO. [%d]",commandptr->CommandId);
-		return 1;
+		return commandptr->CommandId;
 	}
+
+	if (strcmp(command,"SMS")==0) {
+		if (pram1==NULL || pram2 == NULL || command == NULL) {
+							LOF_debug_error("Illegal Command, Will Not Arrange.");
+							return -1;
+			}
+		if (strlen(pram1) <= 10 ) {
+					contactptr = LOF_DATA_BuddyContact_list_find_by_sid(user->contactList,pram1);
+				}
+				else {
+					if (strlen(pram1) == 11){
+						contactptr = LOF_DATA_BuddyContact_list_find_by_mobileno(user->contactList,pram1);
+					}
+					else {
+						contactptr = LOF_DATA_BuddyContact_list_find_by_sipuri(user->contactList,pram1);
+					}
+				}
+				if (contactptr == NULL) {
+					if (strcmp(pram1,user->sId)==0 || (strcmp(pram1,user->sipuri)==0) || (strcmp(pram1,user->mobileno)==0)){
+						commandptr = LOF_TOOL_Command_new(LOF_COMMAND_SEND_SMS,user->sipuri,pram2);
+						LOF_debug_info("Sending SMS to self.");
+						if (*Command_List == NULL){
+						*Command_List = LOF_TOOL_FxList_new(commandptr);
+						}else{
+						LOF_TOOL_FxList_append(*Command_List,LOF_TOOL_FxList_new(commandptr));
+						}
+						LOF_debug_info("Arranged A New SMS Command, Which is NO. [%d]",commandptr->CommandId);
+						return commandptr->CommandId;
+					}
+
+					LOF_debug_error("Illegal Command, Will Not Arrange.");
+					return -1;
+				}
+				commandptr = LOF_TOOL_Command_new(LOF_COMMAND_SEND_SMS,contactptr->sipuri,pram2);
+				if (*Command_List == NULL){
+					*Command_List = LOF_TOOL_FxList_new(commandptr);
+				}else{
+					LOF_TOOL_FxList_append(*Command_List,LOF_TOOL_FxList_new(commandptr));
+				}
+				LOF_debug_info("Arranged A New SMS Command, Which is NO. [%d]",commandptr->CommandId);
+				return commandptr->CommandId;
+			}
 
 
 
@@ -408,7 +519,9 @@ int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxListType
 				if (LOF_TOOL_Command_exec_send_msg(((LOF_TOOL_CommandType*)(listptr->data)),ConversationList)==6) continue;
 			}
 
-
+			if (((LOF_TOOL_CommandType*)(listptr->data))->Instruction == LOF_COMMAND_SEND_SMS ){
+							if (LOF_TOOL_Command_exec_send_sms(((LOF_TOOL_CommandType*)(listptr->data)),ConversationList)==2) continue;
+						}
 
 
 
@@ -429,6 +542,7 @@ int LOF_CallBack_Message (LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_Fx
 	memset(from , 0 , sizeof(from));
 	LOF_SIP_get_attr(sipmsg , "F" , from);
 	LOF_TOOL_Command_arrange(((LOF_USER_ConversationType*)(ConversationListPtr->data))->currentUser,Command_List,"MSG",from,sipmsg);
+	LOF_debug_info("Received Message From %s. \n %s",from,strstr(sipmsg,"\r\n\r\n")+4);
 	free(sipmsg);
 
 
@@ -457,4 +571,74 @@ return 0;
 }
 
 
+int LOF_File_prepare(LOF_DATA_LocalUserType* user,const char* fname){
+	char fullname[256];
+	int result;
+	memset (fullname,0,sizeof(fullname));
+	snprintf((char*)fullname, sizeof(fullname), "%s/%s",user->config->globalPath,fname);
+	result = access((char*)fullname,06);
+	if (result == EACCES) return -1;
+	if (result == ENOENT) {
+		LOF_debug_info("about to creat file %s.",fullname);
+			if (creat((char*)fullname,0664) == -1) return -1;
+			result = access((char*)fullname,06);
+		}
+	if (result == ENOENT || result == EACCES) return -1;
 
+	return fclose (fopen((char*)fullname,"w+"));
+}
+int LOF_FIFO_prepare(LOF_DATA_LocalUserType* user,const char* fname){
+	char fullname[256];
+	int result;
+	memset (fullname,0,sizeof(fullname));
+	snprintf((char*)fullname, sizeof(fullname), "%s/%s",user->config->globalPath,fname);
+	result = mkfifo((char*)fullname,0666);
+	if (result == -1 && errno == EEXIST) {
+		unlink((char*)fullname);
+		result = mkfifo((char*)fullname,0664);
+	}
+	if (result == -1) {
+		LOF_debug_error("Failed to creat Tunnle %s.",fullname);
+		return -1;
+		}
+	LOF_debug_info("Created Tunnle %s.",fullname);
+	return 0;
+}
+int LOF_FIFO_open(LOF_DATA_LocalUserType* user,const char* fname){
+	char fullname[256];
+	memset (fullname,0,sizeof(fullname));
+	snprintf((char*)fullname, sizeof(fullname), "%s/%s",user->config->globalPath,fname);
+	return open(fullname,O_RDONLY|O_NONBLOCK);
+}
+int LOF_TOOL_Command_ParseStr(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** cmdlist,char* str){
+	char Instruction[6];
+	char Pram1[1024];
+	char Pram2[2048];
+	char* strptr1=str;
+	char* strptr2=NULL;
+	char* strptr3=NULL;
+//	printf("!!!\n%s",str);
+	strptr2 = strstr(str,";;");
+	for(;;){
+		if (strptr2 == NULL) break;
+		memset (Instruction,0,sizeof(Instruction));
+		memset (Pram1,0,sizeof(Pram1));
+		memset (Pram2,0,sizeof(Pram2));
+		for (;;){
+		if ((char)(*strptr1) == '\n' || ((char)(*strptr1) == '\r') || ((char)(*strptr1) == ' ') || ((char)(*strptr1) == '\t')) strptr1++;
+		else break;
+		}
+		strptr3=strstr(strptr1," ");
+		memcpy(Instruction,strptr1,(size_t)(strptr3-strptr1));
+		strptr1=strptr3+1;
+		strptr3=strstr(strptr1," ");
+		memcpy(Pram1,strptr1,(size_t)(strptr3-strptr1));
+		strptr1=strptr3+1;
+		memcpy(Pram2,strptr1,(size_t)(strptr2-strptr1));
+//		LOF_debug_info("Result : %s : %s : %s ;\n\n",Instruction,Pram1,Pram2);
+		LOF_TOOL_Command_arrange(user,cmdlist,Instruction,Pram1,Pram2);
+		strptr1=strptr2+2;
+		strptr2 = strstr(strptr2+2,";;");
+	}
+	return 0;
+}

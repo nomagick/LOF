@@ -319,7 +319,7 @@ LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_get_contact_info_by_no(LOF_DATA
 	if(ret < 0)
 		return NULL;
 
-	res = LOF_SIP_get_response(sip);
+/*	res = LOF_SIP_get_response(sip);
 	if(res == NULL){
 		return NULL;
 	}
@@ -334,7 +334,8 @@ LOF_DATA_BuddyContactType* LOF_DATA_BuddyContact_get_contact_info_by_no(LOF_DATA
 		free(res);
 		LOF_debug_error("Get user information by mobile number failed , errno :" , ret);
 		return NULL;
-	}
+	}*/
+	return NULL;
 }
 int LOF_DATA_BuddyContact_set_mobileno_permission(LOF_DATA_LocalUserType* user , const char* userid , int show)
 {

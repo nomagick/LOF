@@ -764,13 +764,20 @@ LOF_DATA_BuddyContactType* LOF_SIP_parse_presence_body(const char* body , LOF_DA
 		{
 			pos = xmlGetProp(cnode , BAD_CAST "b");
 			currentContact->status = atoi((char*)pos);
+			if (currentContact->status == LOF_STATUS_ONLINE) LOF_debug_info("Buddy %s is now ONLINE.",currentContact->nickname);else if (currentContact->status > 0)LOF_debug_info("Buddy %s is now ONLINE BUT may not able to reply.",currentContact->nickname);
 			xmlFree(pos);
 		}
+		if(xmlHasProp(cnode , BAD_CAST "d"))
+				{
+					pos = xmlGetProp(cnode , BAD_CAST "d");
+					strcpy(currentContact->statusPhrase , (char*)pos);
+					xmlFree(pos);
+				}
 		contact = LOF_DATA_BuddyContact_new();
 		memset(contact , 0 , sizeof(contact));
 		memcpy(contact , currentContact , sizeof(LOF_DATA_BuddyContactType));
 		LOF_DATA_BuddyContact_list_append(contactres , contact);
-		LOF_debug_info("BuddyContact Updated For %s.",contact->nickname);
+
 		node = node->next;
 	}
 	xmlFreeDoc(doc);

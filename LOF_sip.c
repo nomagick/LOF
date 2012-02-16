@@ -711,7 +711,7 @@ void LOF_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF
 	LOF_SIP_get_attr(sipmsg , "Q" , sequence);
 	LOF_SIP_get_attr(sipmsg , "D" , sendtime);
 
-	/**msg = LOF_DATA_FetionMessage_new();
+	*msg = LOF_DATA_FetionMessage_new();
 
 	(*msg)->sysback = 0;
 	if(strstr(sipmsg, "SIP-C/3.0") &&
@@ -741,7 +741,7 @@ void LOF_SIP_parse_message(LOF_SIP_FetionSipType* sip , const char* sipmsg , LOF
 	}else{
 		LOF_DATA_FetionMessage_set_message(*msg , pos);
 	}
-*/
+
 
 	if(strstr(from , "PG") == NULL)
 	    sprintf(rep ,"SIP-C/4.0 200 OK\r\nF: %s\r\nI: %s\r\nQ: %s\r\n\r\n"

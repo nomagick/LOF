@@ -3,7 +3,7 @@
 #define LOF_COMMAND_MAX_TIME 30
 #define LOF_MAX_CONCURRENT 3
 
-
+#include <fcntl.h>
 
 extern LOF_TOOL_StopWatchType* LOF_TOOL_StopWatch_new();
 extern void LOF_TOOL_StopWatch_start(LOF_TOOL_StopWatchType* the_watch);
@@ -44,9 +44,12 @@ extern int LOF_TOOL_Command_main(LOF_TOOL_FxListType** Command_List,LOF_TOOL_FxL
 extern int LOF_TOOL_Command_ack_sipc40 (LOF_TOOL_FxListType* Command_List, char* sipc40msg);
 extern int LOF_TOOL_Command_arrange(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** Command_List,const char* command,const char* pram1,const char* pram2);
 extern void LOF_TOOL_Command_destroy(LOF_TOOL_CommandType* The_Command);
+extern int LOF_TOOL_Command_exec_send_sms(LOF_TOOL_CommandType* The_Command,LOF_TOOL_FxListType* ConversationList);
 extern int LOF_CallBack_Message (LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List , char* sipmsg);
 extern int LOF_CallBack_Invitation(LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List ,char* sipmsg);
 extern int LOF_CallBack_Presence(LOF_TOOL_FxListType* ConversationListPtr , LOF_TOOL_FxListType** Command_List , char* sipmsg);
-
-
+extern int LOF_File_prepare(LOF_DATA_LocalUserType* user,const char* fname);
+extern int LOF_FIFO_prepare(LOF_DATA_LocalUserType* user,const char* fname);
+extern int LOF_TOOL_Command_ParseStr(LOF_DATA_LocalUserType* user,LOF_TOOL_FxListType** cmdlist,char* str);
+extern int LOF_FIFO_open(LOF_DATA_LocalUserType* user,const char* fname);
 #endif
