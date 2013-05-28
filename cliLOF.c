@@ -2,22 +2,22 @@
 #include "LOF_extra.h"
 #include <fcntl.h>
 
-
+	LOF_DATA_LocalUserType *LOF_GLOBAL_User=NULL;
+	LOF_TOOL_FxListType* LOF_GLOBAL_ConversationList = NULL;
+	LOF_TOOL_FxListType* LOF_GLOBAL_Command_List=NULL;
+	LOF_TOOL_FxListType* LOF_GLOBAL_MessageList=NULL;
 
 
 
 
 #define BUFLEN 1024
-	LOF_DATA_LocalUserType *LOF_GLOBAL_User;
+
 	char mobileno[BUFLEN];
 	char password[BUFLEN];
 	char receiveno[BUFLEN];
 	char message[BUFLEN];
 
 
-	LOF_TOOL_FxListType* LOF_GLOBAL_ConversationList = NULL;
-	LOF_TOOL_FxListType* LOF_GLOBAL_Command_List=NULL;
-	LOF_TOOL_FxListType* LOF_GLOBAL_MessageList=NULL;
 int LOF_TAKEOVER(){
 
 
@@ -32,6 +32,8 @@ int LOF_TAKEOVER(){
 		LOF_TOOL_FxListType* ConversationListTempPtr;
 		//LOF_USER_ConversationType *ConversationPtr;
 
+
+
 		/* The Command List used to arrange sending operations.*/
 
 		/* Die flag */
@@ -41,6 +43,7 @@ int LOF_TAKEOVER(){
 		LOF_DATA_BuddyContactType *ContactPtr;
 		LOF_DATA_FetionMessageType* MessageListPtr;
 		int CommandTunnel=-1 ;
+		int ResultTunnel=-1;
 		char CommandTunnelBuff[(int)(PIPE_BUF+2)];
 		char*	sipuri;
 		int tmpint;
@@ -167,6 +170,7 @@ int LOF_TAKEOVER(){
 						LOF_debug_info("Received DEREGISTRATION!");
 						LOF_debug_error("You Are KICKED OFFLINE");
 						WANADIE=1;
+						exit(1);
 						//Fatal Error, Should Exit
 					}
 					break;
@@ -227,24 +231,13 @@ int LOF_TAKEOVER(){
 		LOF_TOOL_AutoKeepAlive(LOF_GLOBAL_User,the_watch,25);
 
 
-		if (CommandTunnel == -1){
 
-			CommandTunnel = LOF_FIFO_open(LOF_GLOBAL_User,"CommandTunnel");
-		}
-		else {
-			tmpint=read(CommandTunnel,CommandTunnelBuff,PIPE_BUF);
-			if (tmpint > 0){
-				LOF_TOOL_Command_ParseStr(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,CommandTunnelBuff);
-				memset(CommandTunnelBuff,0,sizeof(CommandTunnelBuff));
-			}else if (tmpint < 0)close(CommandTunnel);
-//			LOF_debug_info("NO CMD FROM TUNEL");
-		}
 		//	printf("Entering\n");
-		if (LOF_TOOL_Command_main(&LOF_GLOBAL_Command_List, LOF_GLOBAL_ConversationList) != 1) LongSleepFlag = 0;
+		if (LOF_TOOL_Command_main(&LOF_GLOBAL_Command_List, LOF_GLOBAL_ConversationList , &LOF_GLOBAL_MessageList , &ResultTunnel) != 1) LongSleepFlag = 0;
 
 		if (LongSleepFlag == 1) sleep(3);else {
 			LongSleepFlag = 1 ;
-			usleep(300000);
+			usleep(800000);
 		}
 
 		if(loop_counter == 3) {
@@ -257,26 +250,24 @@ int LOF_TAKEOVER(){
 				}*/
 LOF_debug_info("NOW!!!!!!!!");
 
-		//	LOF_DATA_BuddyContact_get_contact_info_by_no(LOF_GLOBAL_User, "13716383770", LOF_MOBILE_NO);
-	//LOF_TOOL_Command_arrange(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,"SMS","13810685380",message);
-	LOF_File_prepare(LOF_GLOBAL_User,"test");
 		}
 
-		if (loop_counter > 3 && (loop_counter % 5 == 0  || LongSleepFlag == 1)){
-			char* instruction[5],pram1[32],pram2[2048];
 
-		//	char FileUrl[256];
+			if (CommandTunnel == -1){
 
-	//		snprintf((char*)FileUrl, sizeof(FileUrl), "%s/%s",LOF_GLOBAL_User->config->globalPath,"test");
+				CommandTunnel = LOF_FIFO_open(LOF_GLOBAL_User,"CommandTunnel",0);
+			}
+			else {
+				//LOF_TOOL_Command_ParseJson(&CommandTunnel,LOF_GLOBAL_User,&LOF_GLOBAL_Command_List);
+				tmpint=read(CommandTunnel,CommandTunnelBuff,PIPE_BUF);
+				if (tmpint > 0){
+					LOF_TOOL_Command_ParseStr(LOF_GLOBAL_User,&LOF_GLOBAL_Command_List,CommandTunnelBuff);
+					memset(CommandTunnelBuff,0,sizeof(CommandTunnelBuff));
+				}else if (tmpint < 0)close(CommandTunnel);
+				LOF_debug_info("NO CMD FROM TUNEL");
+			}
 
-		/*	if (CommandTunnel != NULL){PIPE_BUF;
-				while (fscanf(CommandTunnel,"%s %s %s;",&instruction,&pram1,&pram2) != EOF){
-					LOF_debug_info("Read from file %s : %s : %s .",instruction,pram1,pram2);
-				}
-		//	LOF_debug_info("Read from file %s : %s : %s .",instruction,pram1,pram2);
-		//	fclose(thefile);
-			}*/
-		}
+
 	//	LOF_debug_info("Loop Finish. All Good.");
 
 	}
@@ -391,6 +382,7 @@ LOF_debug_info("NOW!!!!!!!!");
 		LOF_DATA_BuddyContact_save(LOF_GLOBAL_User);
 		LOF_DATA_BuddyContact_subscribe_only(LOF_GLOBAL_User);
 		LOF_FIFO_prepare(LOF_GLOBAL_User,"CommandTunnel");
+		LOF_FIFO_prepare(LOF_GLOBAL_User,"ResultTunnel");
 		LOF_debug_info("Login is done. start" );
 		return 0;
 	}
